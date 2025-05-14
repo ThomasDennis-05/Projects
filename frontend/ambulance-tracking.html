@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ambulance Tracking - FastTrack</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary-color: #10b981;
+            --secondary-dark: #059669;
+            --accent-color: #f97316;
+            --danger-color: #ef4444;
+            --text-color: #1f2937;
+            --text-light: #6b7280;
+            --bg-color: #f3f4f6;
+            --white: #ffffff;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: var(--white);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 10;
+        }
+
+        header .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        header .user-info img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--white);
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            height: calc(100vh - 64px - 60px);
+        }
+
+        .sidebar {
+            width: 350px;
+            background: var(--white);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .map-container {
+            flex: 1;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .tracking-info {
+            margin-bottom: 1.5rem;
+        }
+
+        .tracking-info h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+
+        .tracking-details {
+            background-color: var(--bg-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+        }
+
+        .detail-item {
+            margin-bottom: 0.75rem;
+        }
+
+        .detail-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .detail-label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-bottom: 0.25rem;
+        }
+
+        .detail-value {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.35rem 0.75rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            font-weight: 500;
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--secondary-color);
+        }
+
+        .eta-box {
+            background: var(--primary-color);
+            color: var(--white);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        .eta-box h3 {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            opacity: 0.9;
+        }
+
+        .eta-time {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .footer {
+            background-color: var(--white);
+            padding: 1rem 2rem;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .ambulance-info {
+            margin: 1.5rem 0;
+        }
+
+        .ambulance-card {
+            background-color: var(--white);
+            border: 1px solid #eee;
+            border-left: 4px solid var(--accent-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+        }
+
+        .ambulance-card h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .driver-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .driver-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            margin-right: 1rem;
+            object-fit: cover;
+            border: 2px solid var(--primary-color);
+        }
+
+        .driver-details {
+            flex: 1;
+        }
+
+        .driver-name {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .driver-rating {
+            color: var(--accent-color);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .contact-driver {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .contact-btn {
+            flex: 1;
+            padding: 0.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+            background-color: #f3f4f6;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+        }
+
+        .contact-btn:hover {
+            background-color: #e5e7eb;
+        }
+
+        .journey-progress {
+            margin: 1.5rem 0;
+        }
+
+        .progress-steps {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .progress-line {
+            position: absolute;
+            left: 10px;
+            top: 15px;
+            bottom: 0;
+            width: 2px;
+            background-color: #e5e7eb;
+            z-index: 1;
+        }
+
+        .progress-line-active {
+            position: absolute;
+            left: 10px;
+            top: 15px;
+            width: 2px;
+            background-color: var(--secondary-color);
+            z-index: 2;
+            height: 0;
+            transition: height 0.5s ease;
+        }
+
+        .progress-step {
+            position: relative;
+            padding-bottom: 1.5rem;
+        }
+
+        .step-indicator {
+            position: absolute;
+            left: -30px;
+            top: 0;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #e5e7eb;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .step-indicator.active {
+            background-color: var(--secondary-color);
+        }
+
+        .step-indicator.completed {
+            background-color: var(--secondary-color);
+        }
+
+        .step-indicator i {
+            font-size: 0.75rem;
+            color: var(--white);
+        }
+
+        .step-content {
+            padding-left: 0.5rem;
+        }
+
+        .step-title {
+            font-weight: 500;
+            font-size: 0.95rem;
+            color: var(--text-color);
+        }
+
+        .step-description {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.7);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary-color);
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 1rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Back button */
+        .back-btn {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background-color: white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-md);
+            z-index: 10;
+            cursor: pointer;
+            border: none;
+            transition: var(--transition);
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        /* Hospital selection */
+        .hospital-selection {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f9f9ff;
+            border-radius: var(--radius-md);
+            border: 1px dashed var(--primary-color);
+        }
+        
+        .hospital-selection h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .hospital-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .hospital-option {
+            padding: 0.5rem;
+            border: 1px solid #eee;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            background: white;
+        }
+        
+        .hospital-option:hover {
+            border-color: var(--primary-color);
+            background: #f0f7ff;
+        }
+        
+        .hospital-option.selected {
+            border-color: var(--primary-color);
+            background: #f0f7ff;
+        }
+        
+        .hospital-name {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        
+        .hospital-address {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+        
+        .hospital-distance {
+            font-size: 0.8rem;
+            color: var(--accent-color);
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <i class="fas fa-ambulance"></i>
+            <h1>FastTrack</h1>
+        </div>
+        <div class="user-info">
+            <span>donlj</span>
+            <img src="https://ui-avatars.com/api/?name=donlj&background=random" alt="User Avatar">
+        </div>
+    </header>
+    <div class="main-container">
+        <div class="sidebar">
+            <div class="tracking-info">
+                <h2>Ambulance Tracking</h2>
+                <div class="tracking-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Tracking ID</div>
+                        <div class="detail-value" id="trackingId">Loading...</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Patient</div>
+                        <div class="detail-value" id="patientName">Loading...</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Patient Location</div>
+                        <div class="detail-value" id="patientLocation">Loading...</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Status</div>
+                        <div class="detail-value">
+                            <span class="status-badge">
+                                <i class="fas fa-truck-medical"></i>
+                                <span id="ambulanceStatus">En Route</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="eta-box">
+                <h3>Estimated Time of Arrival</h3>
+                <div class="eta-time" id="etaTime">-- min</div>
+            </div>
+            
+            <div class="ambulance-info">
+                <div class="ambulance-card">
+                    <h3 id="ambulanceName">Ambulance</h3>
+                    <div class="driver-info">
+                        <img id="driverAvatar" src="https://ui-avatars.com/api/?name=Driver&background=random" class="driver-avatar" alt="Driver Avatar">
+                        <div class="driver-details">
+                            <div class="driver-name" id="driverName">Driver Name</div>
+                            <div class="driver-rating">
+                                <i class="fas fa-star"></i> 4.9
+                            </div>
+                        </div>
+                    </div>
+                    <div class="contact-driver">
+                        <button class="contact-btn">
+                            <i class="fas fa-phone"></i>
+                        </button>
+                        <button class="contact-btn">
+                            <i class="fas fa-comment"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="hospitalSelectionContainer" style="display:none;" class="hospital-selection">
+                <h4>Select Nearest Hospital</h4>
+                <div id="hospitalOptions" class="hospital-options">
+                    <!-- Hospital options will be added here -->
+                </div>
+            </div>
+            
+            <div class="journey-progress">
+                <div class="progress-steps">
+                    <div class="progress-line"></div>
+                    <div class="progress-line-active" id="progressLineActive"></div>
+                    
+                    <div class="progress-step">
+                        <div class="step-indicator active">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="step-content">
+                            <div class="step-title">Ambulance Dispatched</div>
+                            <div class="step-description" id="dispatchTime">2025-03-16 16:40:16</div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-step">
+                        <div class="step-indicator" id="enRouteIndicator">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="step-content">
+                            <div class="step-title">En Route to Patient</div>
+                            <div class="step-description" id="enRouteTime">--:--</div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-step">
+                        <div class="step-indicator" id="arrivedIndicator">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="step-content">
+                            <div class="step-title">Arrived at Patient Location</div>
+                            <div class="step-description" id="arrivalTime">--:--</div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-step">
+                        <div class="step-indicator" id="hospitalIndicator">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="step-content">
+                            <div class="step-title">En Route to Hospital</div>
+                            <div class="step-description" id="toHospitalTime">--:--</div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-step">
+                        <div class="step-indicator" id="completedIndicator">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="step-content">
+                            <div class="step-title">Arrived at Hospital</div>
+                            <div class="step-description" id="completedTime">--:--</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <a href="notifications.html" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Back to Notifications
+            </a>
+        </div>
+        
+        <div class="map-container">
+            <div id="map"></div>
+            <div id="loadingOverlay" class="loading-overlay">
+                <div class="spinner"></div>
+                <p>Loading ambulance tracking...</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>&copy; 2025 FastTrack Ambulance Management System. All rights reserved.</p>
+        <p id="footer-date">Last updated: 2025-03-18 02:24:34</p>
+    </div>
+
+    <script>
+        // Mapbox API token - replace with your actual token if needed
+        mapboxgl.accessToken = 'pk.eyJ1IjoidG9tMjYxMSIsImEiOiJjbTdxOXpqcjEwbXp3MmlxeWx5c2c0Ymt1In0.IDbRSRluguViXa6h1_18qA';
+        
+        // Global variables
+        let map;
+        let ambulanceMarker;
+        let patientMarker;
+        let hospitalMarker;
+        let routeLine;
+        let routeToHospital;
+        let currentStep = 0;
+        let simulationInterval;
+        let currentHospital = null;
+        
+        // For animation along actual routes
+        let routeIndex = 0;
+        let currentRoute = [];
+        let animationId;
+        let stepCount = 0;
+        
+        // Bangalore center coordinates
+        const BANGALORE_CENTER = [77.5946, 12.9716];
+        
+        // Patient form data (This would normally come from a database)
+        const patientFormData = {
+            name: "Priya Sharma",
+            age: 42,
+            address: "24 Jayanagar, Bangalore",
+            condition: "Cardiac Emergency",
+            coordinates: [77.5932, 12.9259] // Jayanagar coordinates
+        };
+        
+        // Preset hospitals in Bangalore
+        const bangaloreHospitals = [
+            {
+                id: 'h1',
+                name: 'Apollo Hospitals',
+                address: '154/11, Bannerghatta Road, Bangalore',
+                coordinates: [77.5979, 12.8913],
+                distance: 0
+            },
+            {
+                id: 'h2',
+                name: 'Manipal Hospital',
+                address: '98, HAL Airport Road, Bangalore',
+                coordinates: [77.6482, 12.9583],
+                distance: 0
+            },
+            {
+                id: 'h3',
+                name: 'Fortis Hospital',
+                address: '154, Bannerghatta Road, Bangalore',
+                coordinates: [77.5982, 12.8891],
+                distance: 0
+            },
+            {
+                id: 'h4',
+                name: 'Narayana Health City',
+                address: '258/A, Bommasandra Industrial Area, Bangalore',
+                coordinates: [77.6826, 12.8235],
+                distance: 0
+            },
+            {
+                id: 'h5',
+                name: 'Columbia Asia Hospital',
+                address: 'Kirloskar Business Park, Hebbal, Bangalore',
+                coordinates: [77.5927, 13.0358],
+                distance: 0
+            }
+        ];
+        
+        let trackingData = {
+            id: generateTrackingId(),
+            ambulance: {
+                id: 'AMB-101',
+                name: 'Ambulance 101',
+                driver: 'Rajesh Kumar',
+                phone: '+91-9876543210'
+            },
+            patient: patientFormData, // Use patient data from form
+            status: 'en-route',
+            eta: '--',
+            route: []
+        };
+        
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const ambulanceIdParam = urlParams.get('ambulance');
+        const notificationIdParam = urlParams.get('id');
+        
+        // DOM elements
+        const trackingIdElement = document.getElementById('trackingId');
+        const patientNameElement = document.getElementById('patientName');
+        const patientLocationElement = document.getElementById('patientLocation');
+        const ambulanceStatusElement = document.getElementById('ambulanceStatus');
+        const etaTimeElement = document.getElementById('etaTime');
+        const ambulanceNameElement = document.getElementById('ambulanceName');
+        const driverNameElement = document.getElementById('driverName');
+        const driverAvatarElement = document.getElementById('driverAvatar');
+        const dispatchTimeElement = document.getElementById('dispatchTime');
+        const enRouteTimeElement = document.getElementById('enRouteTime');
+        const arrivalTimeElement = document.getElementById('arrivalTime');
+        const toHospitalTimeElement = document.getElementById('toHospitalTime');
+        const completedTimeElement = document.getElementById('completedTime');
+        const progressLineActive = document.getElementById('progressLineActive');
+        const hospitalSelectionContainer = document.getElementById('hospitalSelectionContainer');
+        const hospitalOptionsContainer = document.getElementById('hospitalOptions');
+        
+        // Initialize the page
+        window.addEventListener('load', function() {
+            // Set tracking ID
+            trackingIdElement.textContent = trackingData.id;
+            
+            // Update with URL parameters if available
+            if (ambulanceIdParam) {
+                trackingData.ambulance.id = ambulanceIdParam;
+                trackingData.ambulance.name = `Ambulance ${ambulanceIdParam.replace('AMB-', '')}`;
+            }
+            
+            // Update patient info from form data
+            patientNameElement.textContent = trackingData.patient.name;
+            patientLocationElement.textContent = trackingData.patient.address;
+            
+            // Update UI elements
+            ambulanceNameElement.textContent = trackingData.ambulance.name;
+            driverNameElement.textContent = trackingData.ambulance.driver;
+            driverAvatarElement.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(trackingData.ambulance.driver)}&background=random`;
+            dispatchTimeElement.textContent = getCurrentTime(-5); // 5 min ago
+            
+            // Initialize map
+            initMap();
+        });
+        
+        // Initialize the map
+        function initMap() {
+            // Create map centered at patient location
+            map = new mapboxgl.Map({
+                container: 'map',
+                style: 'mapbox://styles/mapbox/streets-v12',
+                center: trackingData.patient.coordinates,
+                zoom: 13
+            });
+            
+            // Add navigation controls
+            map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+            
+            // When map is loaded
+            map.on('load', function() {
+                // Hide loading overlay
+                document.getElementById('loadingOverlay').style.display = 'none';
+                
+                // Add markers for patient
+                addPatientMarker();
+                
+                // Generate starting point for ambulance (at a depot location or hospital)
+                const ambulanceStart = {
+                    lng: 77.6020, // Sample depot location in Bangalore
+                    lat: 12.9720
+                };
+                
+                // Add ambulance marker
+                addAmbulanceMarker(ambulanceStart);
+                
+                // Find nearest hospitals
+                const nearestHospitals = findNearestHospitals(trackingData.patient.coordinates);
+                
+                // Calculate distances for each hospital
+                updateHospitalDistances(nearestHospitals);
+                
+                // Show hospital selection after arriving at patient
+                prepareHospitalSelection(nearestHospitals);
+                
+                // Select default hospital
+                currentHospital = nearestHospitals[0];
+                
+                // Set up map sources for routes
+                setupRouteSources();
+                
+                // Get directions from Mapbox
+                getDirectionsFromMapbox(
+                    [ambulanceStart.lng, ambulanceStart.lat], 
+                    trackingData.patient.coordinates
+                ).then(route => {
+                    // Store the route
+                    trackingData.route = route;
+                    currentRoute = route;
+                    
+                    // Update route on map
+                    updateRouteLine(route);
+                    
+                    // Start moving ambulance along the route
+                    startAmbulanceMovement();
+                });
+            });
+        }
+        
+        // Set up route sources for the map
+        function setupRouteSources() {
+            // Add source and layer for ambulance-to-patient route
+            map.addSource('route', {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'properties': {},
+                    'geometry': {
+                        'type': 'LineString',
+                        'coordinates': []
+                    }
+                }
+            });
+            
+            map.addLayer({
+                'id': 'route',
+                'type': 'line',
+                'source': 'route',
+                'layout': {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                'paint': {
+                    'line-color': '#2563eb',
+                    'line-width': 4,
+                    'line-opacity': 0.8
+                }
+            });
+            
+            // Add source and layer for patient-to-hospital route (initially hidden)
+            map.addSource('hospitalRoute', {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'properties': {},
+                    'geometry': {
+                        'type': 'LineString',
+                        'coordinates': []
+                    }
+                }
+            });
+            
+            map.addLayer({
+                'id': 'hospitalRoute',
+                'type': 'line',
+                'source': 'hospitalRoute',
+                'layout': {
+                    'line-join': 'round',
+                    'line-cap': 'round',
+                    'visibility': 'none' // Initially hidden
+                },
+                'paint': {
+                    'line-color': '#10b981',
+                    'line-width': 4,
+                    'line-opacity': 0.8
+                }
+            });
+        }
+        
+        // Add patient marker to map
+        function addPatientMarker() {
+            // Create a DOM element for the patient marker
+            const el = document.createElement('div');
+            el.className = 'patient-marker';
+            el.style.backgroundImage = 'url(https://cdn-icons-png.flaticon.com/512/2442/2442045.png)';
+            el.style.backgroundSize = '100%';
+            el.style.width = '32px';
+            el.style.height = '32px';
+            el.style.cursor = 'pointer';
+            
+            patientMarker = new mapboxgl.Marker({
+                element: el,
+                anchor: 'bottom'
+            })
+                .setLngLat(trackingData.patient.coordinates)
+                .setPopup(
+                    new mapboxgl.Popup({ offset: 25 }).setHTML(
+                        `<h3>${trackingData.patient.name}</h3><p>${trackingData.patient.address}</p><p><strong>Condition:</strong> ${trackingData.patient.condition}</p>`
+                    )
+                )
+                .addTo(map);
+        }
+        
+        // Add hospital marker to map
+        function addHospitalMarker(hospital) {
+            // Remove existing hospital marker if any
+            if (hospitalMarker) {
+                hospitalMarker.remove();
+            }
+            
+            // Create a DOM element for the hospital marker
+            const el = document.createElement('div');
+            el.className = 'hospital-marker';
+            el.style.backgroundImage = 'url(https://cdn-icons-png.flaticon.com/512/3448/3448513.png)';
+            el.style.backgroundSize = '100%';
+            el.style.width = '32px';
+            el.style.height = '32px';
+            el.style.cursor = 'pointer';
+            
+            hospitalMarker = new mapboxgl.Marker({
+                element: el,
+                anchor: 'bottom'
+            })
+                .setLngLat(hospital.coordinates)
+                .setPopup(
+                    new mapboxgl.Popup({ offset: 25 }).setHTML(
+                        `<h3>${hospital.name}</h3><p>${hospital.address}</p><p><strong>Distance:</strong> ${hospital.distance} km</p>`
+                    )
+                )
+                .addTo(map);
+        }
+        
+        // Add ambulance marker to map
+        function addAmbulanceMarker(position) {
+            // Create a DOM element for the ambulance marker
+            const el = document.createElement('div');
+            el.className = 'ambulance-marker';
+            el.style.backgroundImage = 'url(https://cdn-icons-png.flaticon.com/512/2191/2191168.png)';
+            el.style.backgroundSize = '100%';
+            el.style.width = '40px';
+            el.style.height = '40px';
+            el.style.cursor = 'pointer';
+            
+            ambulanceMarker = new mapboxgl.Marker({
+                element: el,
+                anchor: 'bottom',
+                rotation: 0 // Will be updated during movement for direction
+            })
+                .setLngLat([position.lng, position.lat])
+                .setPopup(
+                    new mapboxgl.Popup({ offset: 25 }).setHTML(
+                        `<h3>${trackingData.ambulance.name}</h3><p>Driver: ${trackingData.ambulance.driver}</p>`
+                    )
+                )
+                .addTo(map);
+        }
+        
+        // Get directions using Mapbox Directions API
+        async function getDirectionsFromMapbox(start, end) {
+            try {
+                // Use the Mapbox Directions API to get actual road routes
+                const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${start[0]},${start[1]};${end[0]},${end[1]}?steps=true&geometries=geojson&access_token=${mapboxgl.accessToken}`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                // Extract the route coordinates from the response
+                if (data.routes && data.routes.length > 0) {
+                    return data.routes[0].geometry.coordinates;
+                } else {
+                    console.warn("No routes found, falling back to fallback route");
+                    return generateFallbackRoute(start, end);
+                }
+            } catch (error) {
+                console.error("Error getting directions from Mapbox:", error);
+                // Fallback to a simple route if the API call fails
+                return generateFallbackRoute(start, end);
+            }
+        }
+        
+        // Generate a fallback route that follows road patterns
+        function generateFallbackRoute(start, end) {
+            // Calculate straight-line distance to determine number of waypoints
+            const distance = calculateDistance(
+                start[1], start[0],
+                end[1], end[0]
+            );
+            
+            // More waypoints for longer distances
+            const waypointCount = Math.max(10, Math.floor(distance * 15));
+            
+            // Generate waypoints that follow a realistic path
+            const waypoints = generateRoadBasedWaypoints(start, end, waypointCount);
+            
+            // Return the complete route
+            return [start, ...waypoints, end];
+        }
+        
+        // Generate waypoints that follow road-like patterns
+        function generateRoadBasedWaypoints(start, end, count) {
+            const waypoints = [];
+            
+            // Bangalore has a grid-like road structure in many areas
+            // We'll simulate this by creating a route that follows horizontal and vertical segments
+            
+            // Current position
+            let currentX = start[0];
+            let currentY = start[1];
+            
+            // Target position
+            const targetX = end[0];
+            const targetY = end[1];
+            
+            // Determine if we should move horizontally or vertically first
+            const horizontalFirst = Math.random() > 0.5;
+            
+            if (horizontalFirst) {
+                // Move horizontally first, then vertically
+                // Add points along the horizontal segment
+                const horizontalSteps = Math.floor(count * 0.6);
+                const horizontalStepSize = (targetX - currentX) / horizontalSteps;
+                
+                for (let i = 0; i < horizontalSteps; i++) {
+                    currentX += horizontalStepSize;
+                    // Add some small variation to simulate real roads
+                    const jitter = (Math.random() - 0.5) * 0.0001;
+                    waypoints.push([currentX, currentY + jitter]);
+                }
+                
+                // Add points along the vertical segment
+                const verticalSteps = count - horizontalSteps;
+                const verticalStepSize = (targetY - currentY) / verticalSteps;
+                
+                for (let i = 0; i < verticalSteps; i++) {
+                    currentY += verticalStepSize;
+                    // Add some small variation to simulate real roads
+                    const jitter = (Math.random() - 0.5) * 0.0001;
+                    waypoints.push([currentX + jitter, currentY]);
+                }
+            } else {
+                // Move vertically first, then horizontally
+                // Add points along the vertical segment
+                const verticalSteps = Math.floor(count * 0.6);
+                const verticalStepSize = (targetY - currentY) / verticalSteps;
+                
+                for (let i = 0; i < verticalSteps; i++) {
+                    currentY += verticalStepSize;
+                    // Add some small variation to simulate real roads
+                    const jitter = (Math.random() - 0.5) * 0.0001;
+                    waypoints.push([currentX + jitter, currentY]);
+                }
+                
+                // Add points along the horizontal segment
+                const horizontalSteps = count - verticalSteps;
+                const horizontalStepSize = (targetX - currentX) / horizontalSteps;
+                
+                for (let i = 0; i < horizontalSteps; i++) {
+                    currentX += horizontalStepSize;
+                    // Add some small variation to simulate real roads
+                    const jitter = (Math.random() - 0.5) * 0.0001;
+                    waypoints.push([currentX, currentY + jitter]);
+                }
+            }
+            
+            return waypoints;
+        }
+        
+        // Calculate distance between two points using Haversine formula
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radius of the earth in km
+            const dLat = deg2rad(lat2 - lat1);
+            const dLon = deg2rad(lon2 - lon1);
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2); 
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+            const distance = R * c; // Distance in km
+            return distance;
+        }
+        
+        function deg2rad(deg) {
+            return deg * (Math.PI/180);
+        }
+        
+        // Find nearest hospitals to patient
+        function findNearestHospitals(patientCoordinates) {
+            // Calculate distance to each hospital
+            const hospitalsWithDistance = bangaloreHospitals.map(hospital => {
+                const distance = calculateDistance(
+                    patientCoordinates[1], patientCoordinates[0],
+                    hospital.coordinates[1], hospital.coordinates[0]
+                );
+                
+                return {
+                    ...hospital,
+                    distance: distance.toFixed(1) // Round to 1 decimal
+                };
+            });
+            
+            // Sort by distance
+            hospitalsWithDistance.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+            
+            return hospitalsWithDistance;
+        }
+        
+        // Update hospital distances based on actual routes
+        function updateHospitalDistances(hospitals) {
+            hospitals.forEach(hospital => {
+                // In a real app, this would use the actual routing distance
+                // Here we'll add a bit more to the straight-line distance to simulate real routes
+                const straightDistance = parseFloat(hospital.distance);
+                hospital.distance = (straightDistance * 1.3).toFixed(1); // ~30% longer for real routes
+            });
+        }
+        
+        // Prepare hospital selection UI
+        function prepareHospitalSelection(hospitals) {
+            // Clear existing options
+            hospitalOptionsContainer.innerHTML = '';
+            
+            // Add each hospital option
+            hospitals.forEach((hospital, index) => {
+                const option = document.createElement('div');
+                option.className = `hospital-option ${index === 0 ? 'selected' : ''}`;
+                option.dataset.hospitalId = hospital.id;
+                
+                option.innerHTML = `
+                    <div class="hospital-name">${hospital.name}</div>
+                    <div class="hospital-address">${hospital.address}</div>
+                    <div class="hospital-distance">${hospital.distance} km away</div>
+                `;
+                
+                // Add click event to select hospital
+                option.addEventListener('click', function() {
+                    // Update selected class
+                    document.querySelectorAll('.hospital-option').forEach(el => {
+                        el.classList.remove('selected');
+                    });
+                    this.classList.add('selected');
+                    
+                    // Set current hospital
+                    const selectedHospital = hospitals.find(h => h.id === this.dataset.hospitalId);
+                    if (selectedHospital && currentHospital.id !== selectedHospital.id) {
+                        currentHospital = selectedHospital;
+                        
+                        // Update hospital marker
+                        addHospitalMarker(currentHospital);
+                        
+                        // Get directions to the new hospital
+                        getDirectionsFromMapbox(
+                            trackingData.patient.coordinates,
+                            currentHospital.coordinates
+                        ).then(hospitalRoute => {
+                            // Store hospital route
+                            trackingData.hospitalRoute = hospitalRoute;
+                            
+                            // Update route on map if currently showing hospital route
+                            if (map.getLayoutProperty('hospitalRoute', 'visibility') === 'visible') {
+                                updateHospitalRouteLine(trackingData.hospitalRoute);
+                            }
+                        });
+                    }
+                });
+                
+                hospitalOptionsContainer.appendChild(option);
+            });
+        }
+        
+        // Start ambulance movement along the route
+        function startAmbulanceMovement() {
+            // Set initial step to 1 - En Route to Patient
+            updateStep(1);
+            enRouteTimeElement.textContent = getCurrentTime();
+            
+            // Reset route index
+            routeIndex = 0;
+            
+            // Initial position
+            const startPosition = currentRoute[0];
+            updateAmbulancePosition(startPosition[0], startPosition[1], 0);
+            
+            // Calculate initial ETA based on route length
+            const eta = Math.ceil(currentRoute.length / 30); // Simple ETA calculation
+            etaTimeElement.textContent = `${eta} min`;
+            
+            // Animate ambulance movement along the route
+            animateAmbulance();
+        }
+        
+        // Animate ambulance moving along the route
+        function animateAmbulance() {
+            if (routeIndex >= currentRoute.length - 1) {
+                // Reached end of current route
+                
+                if (currentRoute === trackingData.route) {
+                    // Arrived at patient location
+                    ambulanceStatusElement.textContent = 'At Patient Location';
+                    etaTimeElement.textContent = 'Arrived';
+                    
+                    // Update progress
+                    updateStep(2);
+                    arrivalTimeElement.textContent = getCurrentTime();
+                    
+                    // Show hospital selection
+                    hospitalSelectionContainer.style.display = 'block';
+                    
+                    // Add hospital marker for the nearest hospital
+                    addHospitalMarker(currentHospital);
+                    
+                    // Wait at patient location (3 seconds in this demo)
+                    setTimeout(() => {
+                        // Get route to hospital
+                        getDirectionsFromMapbox(
+                            trackingData.patient.coordinates,
+                            currentHospital.coordinates
+                        ).then(hospitalRoute => {
+                            // Update status
+                            ambulanceStatusElement.textContent = 'En Route to Hospital';
+                            updateStep(3);
+                            toHospitalTimeElement.textContent = getCurrentTime();
+                            
+                            // Store and show hospital route
+                            trackingData.hospitalRoute = hospitalRoute;
+                            currentRoute = hospitalRoute;
+                            routeIndex = 0;
+                            
+                            // Hide hospital selection
+                            hospitalSelectionContainer.style.display = 'none';
+                            
+                            // Show hospital route on map
+                            updateHospitalRouteLine(hospitalRoute);
+                            map.setLayoutProperty('hospitalRoute', 'visibility', 'visible');
+                            
+                            // Calculate new ETA to hospital
+                            const eta = Math.ceil(hospitalRoute.length / 30);
+                            etaTimeElement.textContent = `${eta} min to hospital`;
+                            
+                            // Continue animation to hospital
+                            animateAmbulance();
+                        });
+                    }, 3000);
+                    
+                    return;
+                } else if (currentRoute === trackingData.hospitalRoute) {
+                    // Arrived at hospital
+                    ambulanceStatusElement.textContent = 'Arrived at Hospital';
+                    etaTimeElement.textContent = 'Journey Completed';
+                    
+                    // Update progress
+                    updateStep(4);
+                    completedTimeElement.textContent = getCurrentTime();
+                    
+                    return;
+                }
+            }
+            
+            // Calculate next point index
+            routeIndex++;
+            
+            // Get current and next positions
+            const currentPos = currentRoute[routeIndex - 1];
+            const nextPos = currentRoute[routeIndex];
+            
+            // Calculate bearing/heading for ambulance rotation
+            const bearing = getBearing(
+                currentPos[1], currentPos[0],
+                nextPos[1], nextPos[0]
+            );
+            
+            // Update ambulance position on map
+            updateAmbulancePosition(nextPos[0], nextPos[1], bearing);
+            
+            // Update ETA if needed
+            if (routeIndex % 10 === 0) {
+                const remainingPoints = currentRoute.length - routeIndex;
+                const eta = Math.ceil(remainingPoints / 30);
+                
+                if (currentRoute === trackingData.route) {
+                    etaTimeElement.textContent = eta > 0 ? `${eta} min` : `<1 min`;
+                } else {
+                    etaTimeElement.textContent = eta > 0 ? `${eta} min to hospital` : `<1 min to hospital`;
+                }
+            }
+            
+            // Speed control - move slower at turns and intersections
+            let moveSpeed = 100; // Default speed in milliseconds
+            
+            // If we have enough points to check ahead
+            if (routeIndex < currentRoute.length - 2) {
+                const nextNextPos = currentRoute[routeIndex + 1];
+                
+                // Calculate angle change to next segment
+                const currentBearing = bearing;
+                const nextBearing = getBearing(
+                    nextPos[1], nextPos[0],
+                    nextNextPos[1], nextNextPos[0]
+                );
+                
+                // Calculate absolute bearing difference
+                const bearingDiff = Math.abs(((nextBearing - currentBearing + 540) % 360) - 180);
+                
+                // Slow down for turns (higher bearing difference)
+                if (bearingDiff > 30) {
+                    moveSpeed = 200; // Slow down at sharp turns
+                } else if (bearingDiff > 15) {
+                    moveSpeed = 150; // Slight slowdown at moderate turns
+                }
+            }
+            
+            // Move to the next point after a delay
+            setTimeout(() => {
+                animateAmbulance();
+            }, moveSpeed);
+        }
+        
+        // Calculate bearing between two points (for ambulance rotation)
+        function getBearing(startLat, startLng, destLat, destLng) {
+            startLat = deg2rad(startLat);
+            startLng = deg2rad(startLng);
+            destLat = deg2rad(destLat);
+            destLng = deg2rad(destLng);
+            
+            const y = Math.sin(destLng - startLng) * Math.cos(destLat);
+            const x = Math.cos(startLat) * Math.sin(destLat) -
+                Math.sin(startLat) * Math.cos(destLat) * Math.cos(destLng - startLng);
+            let brng = Math.atan2(y, x);
+            brng = (brng * 180) / Math.PI;
+            brng = (brng + 360) % 360;
+            
+            return brng;
+        }
+        
+        // Update ambulance position on the map with appropriate rotation
+        function updateAmbulancePosition(lng, lat, bearing) {
+            // Update marker position
+            ambulanceMarker.setLngLat([lng, lat]);
+            
+            // Update marker rotation based on bearing/heading
+            ambulanceMarker.setRotation(bearing);
+            
+            // Center map on ambulance with some padding toward destination
+            let padding = {};
+            
+            if (currentRoute === trackingData.route) {
+                // If moving to patient, add padding toward patient
+                const patientPos = trackingData.patient.coordinates;
+                
+                // Check which direction the patient is from the ambulance
+                if (patientPos[0] > lng) {
+                    // Patient is to the right
+                    padding = { left: 350, right: 100, top: 100, bottom: 100 };
+                } else {
+                    // Patient is to the left
+                    padding = { left: 100, right: 350, top: 100, bottom: 100 };
+                }
+            } else {
+                // If moving to hospital, add padding toward hospital
+                const hospitalPos = currentHospital.coordinates;
+                
+                // Check which direction the hospital is from the ambulance
+                if (hospitalPos[0] > lng) {
+                    // Hospital is to the right
+                    padding = { left: 350, right: 100, top: 100, bottom: 100 };
+                } else {
+                    // Hospital is to the left
+                    padding = { left: 100, right: 350, top: 100, bottom: 100 };
+                }
+            }
+            
+            // Ease the map to follow the ambulance
+            map.easeTo({
+                center: [lng, lat],
+                padding: padding,
+                duration: 50
+            });
+        }
+        
+        // Update the route line on the map
+        function updateRouteLine(coordinates) {
+            map.getSource('route').setData({
+                'type': 'Feature',
+                'properties': {},
+                'geometry': {
+                    'type': 'LineString',
+                    'coordinates': coordinates
+                }
+            });
+        }
+        
+        // Update the hospital route line on the map
+        function updateHospitalRouteLine(coordinates) {
+            map.getSource('hospitalRoute').setData({
+                'type': 'Feature',
+                'properties': {},
+                'geometry': {
+                    'type': 'LineString',
+                    'coordinates': coordinates
+                }
+            });
+        }
+        
+        // Update journey progress steps
+        function updateStep(step) {
+            // Update step indicators
+            const enRouteIndicator = document.getElementById('enRouteIndicator');
+            const arrivedIndicator = document.getElementById('arrivedIndicator');
+            const hospitalIndicator = document.getElementById('hospitalIndicator');
+            const completedIndicator = document.getElementById('completedIndicator');
+            
+            // Update progress based on current step
+            switch(step) {
+                case 1: // En Route to Patient
+                    enRouteIndicator.classList.add('active');
+                    progressLineActive.style.height = '20%';
+                    break;
+                case 2: // Arrived at Patient Location
+                    enRouteIndicator.classList.add('active');
+                    arrivedIndicator.classList.add('active');
+                    progressLineActive.style.height = '40%';
+                    break;
+                case 3: // En Route to Hospital
+                    enRouteIndicator.classList.add('active');
+                    arrivedIndicator.classList.add('active');
+                    hospitalIndicator.classList.add('active');
+                    progressLineActive.style.height = '65%';
+                    break;
+                case 4: // Completed
+                    enRouteIndicator.classList.add('active');
+                    arrivedIndicator.classList.add('active');
+                    hospitalIndicator.classList.add('active');
+                    completedIndicator.classList.add('active');
+                    progressLineActive.style.height = '85%';
+                    break;
+            }
+        }
+        
+        // Generate unique tracking ID
+        function generateTrackingId() {
+            return 'TRK-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+        }
+        
+        // Get current time formatted
+        function getCurrentTime(offsetMinutes = 0) {
+            const now = new Date();
+            
+            // Apply offset if provided
+            if (offsetMinutes) {
+                now.setMinutes(now.getMinutes() + offsetMinutes);
+            }
+            
+            // Format time
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            
+            return `2025-03-18 ${hours}:${minutes}:${seconds}`;
+        }
+        
+        // Update footer date
+        document.getElementById('footer-date').textContent = `Last updated: ${getCurrentTime()}`;
+    </script>
+</body>
+</html>

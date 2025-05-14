@@ -1,0 +1,1795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastTrack Admin Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary-color: #10b981;
+            --secondary-dark: #059669;
+            --accent-color: #f97316;
+            --danger-color: #ef4444;
+            --text-color: #1f2937;
+            --text-light: #6b7280;
+            --bg-color: #f3f4f6;
+            --white: #ffffff;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: var(--white);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        header .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        header .user-info img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--white);
+        }
+
+        nav {
+            background-color: var(--white);
+            box-shadow: var(--shadow-sm);
+            padding: 0.75rem 2rem;
+            z-index: 10;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav-links a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-color);
+        }
+
+        .nav-links a.active {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -0.75rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 3px;
+            background-color: var(--primary-color);
+            border-radius: 3px;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border: none;
+            padding: 0.5rem 1.25rem;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+
+        .badge {
+            background-color: var(--danger-color);
+            color: var(--white);
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            position: absolute;
+            top: -8px;
+            right: -8px;
+        }
+
+        .notification-icon {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            flex: 1;
+        }
+
+        .dashboard-greeting {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-greeting h2 {
+            font-size: 1.75rem;
+            color: var(--text-color);
+        }
+
+        .dashboard-greeting .date {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background-color: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-card .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-card .stat-icon {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(37, 99, 235, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            font-size: 1.5rem;
+        }
+
+        .stat-card:nth-child(2) .stat-icon {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--secondary-color);
+        }
+
+        .stat-card:nth-child(3) .stat-icon {
+            background-color: rgba(249, 115, 22, 0.1);
+            color: var(--accent-color);
+        }
+
+        .stat-card:nth-child(4) .stat-icon {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+
+        .stat-card .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .stat-card .stat-change {
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .stat-card .stat-change.positive {
+            color: var(--secondary-color);
+        }
+
+        .stat-card .stat-change.negative {
+            color: var(--danger-color);
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-container {
+            background-color: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            height: 400px;
+            position: relative;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .chart-header h3 {
+            font-size: 1.25rem;
+            color: var(--text-color);
+        }
+
+        .chart-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chart-tab {
+            padding: 0.35rem 0.75rem;
+            background: transparent;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            transition: var(--transition);
+        }
+
+        .chart-tab.active {
+            background-color: rgba(37, 99, 235, 0.1);
+            color: var(--primary-color);
+        }
+
+        .double-chart {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .double-chart .chart-container {
+            height: 300px;
+        }
+
+        .tabs-container {
+            display: flex;
+            background-color: var(--white);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            overflow: hidden;
+            margin-bottom: -1px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .tab {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-light);
+            transition: var(--transition);
+            background-color: transparent;
+            border: none;
+            position: relative;
+        }
+
+        .tab.active {
+            color: var(--primary-color);
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: var(--primary-color);
+        }
+
+        .tab-content {
+            background-color: var(--white);
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            min-height: 400px;
+        }
+
+        .filter-container {
+            background-color: var(--white);
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-container h2 {
+            margin-bottom: 1rem;
+            color: var(--text-color);
+            font-size: 1.25rem;
+        }
+
+        .filter-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .ambulance-wrapper {
+            background-color: var(--white);
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .ambulance-wrapper h2 {
+            margin-bottom: 1.5rem;
+            color: var(--text-color);
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .ambulance-wrapper .ambulance-count {
+            font-size: 1rem;
+            color: var(--text-light);
+        }
+
+        .ambulance-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .ambulance-card {
+            background-color: var(--white);
+            border: 1px solid #eee;
+            border-left: 4px solid var(--primary-color);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+        }
+
+        .ambulance-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .ambulance-card.active {
+            border-left-color: var(--secondary-color);
+        }
+
+        .ambulance-card.maintenance {
+            border-left-color: var(--danger-color);
+        }
+
+        .ambulance-card h3 {
+            margin-bottom: 1rem;
+            color: var(--text-color);
+            font-size: 1.2rem;
+        }
+
+        .ambulance-card .status-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .ambulance-card .status-badge.active {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--secondary-color);
+        }
+
+        .ambulance-card .status-badge.inactive {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        .ambulance-card .status-badge.maintenance {
+            background-color: rgba(249, 115, 22, 0.1);
+            color: var(--accent-color);
+        }
+
+        .ambulance-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .ambulance-detail {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ambulance-detail .detail-label {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            margin-bottom: 0.25rem;
+        }
+
+        .ambulance-detail .detail-value {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        .ambulance-actions {
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .ambulance-actions .btn {
+            flex: 1;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 3rem 0;
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        .no-results i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary-color);
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 1rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .recent-activity {
+            background-color: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(37, 99, 235, 0.1);
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-size: 0.95rem;
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        .activity-time {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-top: 0.25rem;
+        }
+
+        .footer {
+            background-color: var(--white);
+            padding: 1.5rem 2rem;
+            margin-top: 2rem;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
+            gap: 0.5rem;
+        }
+
+        .pagination .page-item {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-md);
+            transition: var(--transition);
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+
+        .pagination .page-item:hover {
+            background-color: rgba(37, 99, 235, 0.1);
+            color: var(--primary-color);
+        }
+
+        .pagination .page-item.active {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+
+        .pagination .page-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 20px;
+            max-width: 500px;
+            margin: 100px auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .close-btn {
+            background: var(--danger-color);
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        
+        .close-btn:hover {
+            background: darkred;
+        }
+        
+        .ambulance-list-modal {
+            margin-top: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+        
+        .notify-btn {
+            background: var(--accent-color);
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        
+        .notify-btn:hover {
+            background: #e68900;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+            .double-chart {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 0 1rem;
+            }
+            .dashboard-greeting {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            .filter-form {
+                flex-direction: column;
+            }
+            .filter-actions {
+                width: 100%;
+            }
+            .ambulance-list {
+                grid-template-columns: 1fr;
+            }
+            .chart-container {
+                padding: 1rem;
+            }
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        .ambulance-card, .stat-card, .chart-container {
+            animation: fadeIn 0.3s ease forwards;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <i class="fas fa-ambulance"></i>
+            <h1>FastTrack</h1>
+        </div>
+        <div class="user-info">
+            <div class="notification-icon" onclick="window.location.href='notifications.html'">
+                <i class="fas fa-bell"></i>
+                <span class="badge">3</span>
+            </div>
+            <span>Welcome, donlj</span>
+            <img src="https://ui-avatars.com/api/?name=donlj&background=random" alt="User Avatar">
+        </div>
+    </header>
+    
+    <nav>
+        <div class="nav-container">
+            <div class="nav-links">
+                <a href="#" class="active" id="home-link">Home</a>
+                <a href="#" id="ambulances-link">Ambulances</a>
+                <a href="notifications.html">Notifications</a>
+                <a href="#">Reports</a>
+                <a href="#">Settings</a>
+            </div>
+            <div class="nav-actions">
+                <button class="btn btn-outline">
+                    <i class="fas fa-download"></i>
+                    Export
+                </button>
+                <button class="btn">
+                    <i class="fas fa-plus"></i>
+                    Add Ambulance
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <!-- Home Page Section -->
+        <div id="home-page" class="fade-in">
+            <div class="dashboard-greeting">
+                <div>
+                    <h2>Welcome to FastTrack Dashboard</h2>
+                    <p>Monitor and manage your ambulance fleet efficiently</p>
+                </div>
+                <div class="date">
+                    <i class="fas fa-calendar"></i>
+                    <span id="current-date">2025-03-07 04:19:46</span>
+                </div>
+            </div>
+
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-ambulance"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="total-ambulances">0</div>
+                    <div class="stat-label">Total Ambulances</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        5% increase
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="active-ambulances">0</div>
+                    <div class="stat-label">Active Ambulances</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        3% increase
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-hospital"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="total-hospitals">0</div>
+                    <div class="stat-label">Connected Hospitals</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        2% increase
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="maintenance-ambulances">0</div>
+                    <div class="stat-label">In Maintenance</div>
+                    <div class="stat-change negative">
+                        <i class="fas fa-arrow-down"></i>
+                        1% decrease
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>Ambulance Performance</h3>
+                        <div class="chart-actions">
+                            <button class="chart-tab active">Daily</button>
+                            <button class="chart-tab">Weekly</button>
+                            <button class="chart-tab">Monthly</button>
+                        </div>
+                    </div>
+                    <canvas id="ambulancePerformanceChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>Ambulance Distribution</h3>
+                        <div class="chart-actions">
+                            <button class="chart-tab active">By Status</button>
+                            <button class="chart-tab">By Hospital</button>
+                        </div>
+                    </div>
+                    <canvas id="ambulanceDistributionChart"></canvas>
+                </div>
+            </div>
+
+            <div class="double-chart">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>Response Time</h3>
+                        <div class="chart-actions">
+                            <button class="chart-tab active">Weekly</button>
+                            <button class="chart-tab">Monthly</button>
+                        </div>
+                    </div>
+                    <canvas id="responseTimeChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>Success Rate</h3>
+                        <div class="chart-actions">
+                            <button class="chart-tab active">Weekly</button>
+                            <button class="chart-tab">Monthly</button>
+                        </div>
+                    </div>
+                    <canvas id="successRateChart"></canvas>
+                </div>
+            </div>
+
+            <div class="recent-activity">
+                <div class="activity-header">
+                    <h3>Recent Activity</h3>
+                    <button class="btn btn-outline">View All</button>
+                </div>
+                <div class="activity-list" id="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-ambulance"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Ambulance A123 dispatched to City Hospital</div>
+                            <div class="activity-time">35 minutes ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Ambulance B456 completed mission successfully</div>
+                            <div class="activity-time">1 hour ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Ambulance C789 scheduled for maintenance</div>
+                            <div class="activity-time">2 hours ago</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">New ambulance D012 added to the system</div>
+                            <div class="activity-time">5 hours ago</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ambulances Page Section -->
+        <div id="ambulances-page" class="fade-in" style="display: none;">
+            <div class="filter-container">
+                <h2>Filter Ambulances</h2>
+                <div class="filter-form">
+                    <div class="form-group">
+                        <label for="filterName">Ambulance Name</label>
+                        <input type="text" id="filterName" class="form-control" placeholder="Enter ambulance name">
+                    </div>
+                    <div class="form-group">
+                        <label for="filterLocation">Location</label>
+                        <input type="text" id="filterLocation" class="form-control" placeholder="Enter location">
+                    </div>
+                    <div class="form-group">
+                        <label for="filterHospital">Hospital</label>
+                        <select id="filterHospital" class="form-control">
+                            <option value="">All Hospitals</option>
+                            <option value="City Hospital">City Hospital</option>
+                            <option value="General Hospital">General Hospital</option>
+                            <option value="Metro Medical Center">Metro Medical Center</option>
+                            <option value="Community Health">Community Health</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filterStatus">Status</label>
+                        <select id="filterStatus" class="form-control">
+                            <option value="">All Statuses</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="maintenance">Maintenance</option>
+                        </select>
+                    </div>
+                    <div class="filter-actions">
+                        <button type="button" id="filterBtn" class="btn">
+                            <i class="fas fa-filter"></i>
+                            Filter
+                        </button>
+                        <button type="button" id="clearFilterBtn" class="btn btn-outline">
+                            <i class="fas fa-times"></i>
+                            Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ambulance-wrapper">
+                <h2>
+                    All Ambulances
+                    <span class="ambulance-count" id="ambulance-count">0 ambulances found</span>
+                </h2>
+                <div id="allAmbulancesList" class="ambulance-list">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading ambulances...</p>
+                    </div>
+                </div>
+                <div class="pagination" id="pagination">
+                    <div class="page-item disabled">
+                        <i class="fas fa-chevron-left"></i>
+                    </div>
+                    <div class="page-item active">1</div>
+                    <div class="page-item">2</div>
+                    <div class="page-item">3</div>
+                    <div class="page-item">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Ambulances -->
+    <div id="ambulanceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Available Ambulances</span>
+                <button class="close-btn" onclick="closeModal()">Close</button>
+            </div>
+            <div id="ambulanceList" class="ambulance-list-modal"></div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2025 FastTrack Ambulance Management System. All rights reserved.</p>
+        <p>Version 2.3.0 | Last updated: <span id="footer-date">2025-03-07 04:21:37</span></p>
+    </footer>
+
+    <script>
+        // Update the current date display
+        document.getElementById('current-date').textContent = '2025-03-07 04:21:37';
+        document.getElementById('footer-date').textContent = '2025-03-07 04:21:37';
+
+        // Page navigation
+        const homeLink = document.getElementById('home-link');
+        const ambulancesLink = document.getElementById('ambulances-link');
+        const homePage = document.getElementById('home-page');
+        const ambulancesPage = document.getElementById('ambulances-page');
+
+        homeLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            homePage.style.display = 'block';
+            ambulancesPage.style.display = 'none';
+            homeLink.classList.add('active');
+            ambulancesLink.classList.remove('active');
+            // Refresh chart data when returning to home page
+            updateDashboardCharts();
+        });
+
+        ambulancesLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            homePage.style.display = 'none';
+            ambulancesPage.style.display = 'block';
+            homeLink.classList.remove('active');
+            ambulancesLink.classList.add('active');
+        });
+
+        // Ambulance data handling
+        let allAmbulances = [];
+        let filteredAmbulances = [];
+
+        // Fetch ambulances from API
+        async function fetchAmbulances(queryParams = '') {
+            try {
+                // Show loading state
+                document.getElementById('allAmbulancesList').innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading ambulances...</p>
+                    </div>
+                `;
+
+                const response = await fetch(`http://localhost:3000/ambulances${queryParams}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+                
+                allAmbulances = await response.json();
+                filteredAmbulances = [...allAmbulances];
+                
+                console.log('Fetched ambulances:', allAmbulances);
+                
+                displayAmbulances(allAmbulances);
+                updateDashboardStatistics(allAmbulances);
+                updateDashboardCharts();
+                
+                return allAmbulances;
+            } catch (error) {
+                console.error('Error fetching ambulances:', error.message);
+                document.getElementById('allAmbulancesList').innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>${error.message}. Please try again later.</p>
+                        <button class="btn btn-outline" onclick="fetchAmbulances()">
+                            <i class="fas fa-sync"></i> Retry
+                        </button>
+                    </div>
+                `;
+                return [];
+            }
+        }
+
+        // Display ambulances in the list
+        function displayAmbulances(ambulances) {
+            const ambulanceList = document.getElementById('allAmbulancesList');
+            const ambulanceCount = document.getElementById('ambulance-count');
+            
+            ambulanceCount.textContent = `${ambulances.length} ambulance${ambulances.length !== 1 ? 's' : ''} found`;
+            
+            if (ambulances.length === 0) {
+                ambulanceList.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-search"></i>
+                        <p>No ambulances found matching your filters.</p>
+                        <button class="btn btn-outline" onclick="clearFilters()">
+                            <i class="fas fa-times"></i> Clear Filters
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            ambulanceList.innerHTML = '';
+            
+            ambulances.forEach(ambulance => {
+                const status = ambulance.status || 'active';
+                const statusClass = status.toLowerCase();
+                const statusText = status.charAt(0).toUpperCase() + status.slice(1);
+                
+                ambulanceList.innerHTML += `
+                    <div class="ambulance-card ${statusClass}">
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                        <h3>${ambulance.name}</h3>
+                        <div class="ambulance-details">
+                            <div class="ambulance-detail">
+                                <span class="detail-label">Location</span>
+                                <span class="detail-value">${ambulance.location || 'N/A'}</span>
+                            </div>
+                            <div class="ambulance-detail">
+                                <span class="detail-label">Hospital</span>
+                                <span class="detail-value">${ambulance.hospitalName || 'Not assigned'}</span>
+                            </div>
+                            <div class="ambulance-detail">
+                                <span class="detail-label">Driver</span>
+                                <span class="detail-value">${ambulance.driver || 'Not assigned'}</span>
+                            </div>
+                            <div class="ambulance-detail">
+                                <span class="detail-label">Last Update</span>
+                                <span class="detail-value">${formatTimeAgo(new Date())}</span>
+                            </div>
+                        </div>
+                        <div class="ambulance-actions">
+                            <button class="btn btn-secondary" onclick="notifyDriver('${ambulance.name}', '${ambulance.hospitalName || ''}')">
+                                <i class="fas fa-bell"></i> Notify
+                            </button>
+                            <button class="btn btn-outline" onclick="viewDetails('${ambulance.name}')">
+                                <i class="fas fa-info-circle"></i> Details
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Format time ago
+        function formatTimeAgo(date) {
+            const now = new Date();
+            const diffInSeconds = Math.floor((now - date) / 1000);
+            
+            if (diffInSeconds < 60) {
+                return 'Just now';
+            } else if (diffInSeconds < 3600) {
+                const minutes = Math.floor(diffInSeconds / 60);
+                return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+            } else if (diffInSeconds < 86400) {
+                const hours = Math.floor(diffInSeconds / 3600);
+                return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+            } else {
+                const days = Math.floor(diffInSeconds / 86400);
+                return `${days} day${days > 1 ? 's' : ''} ago`;
+            }
+        }
+
+        // Update dashboard statistics
+        function updateDashboardStatistics(ambulances) {
+            const totalAmbulances = ambulances.length || 12;
+            const activeAmbulances = ambulances.filter(a => a.status === 'active').length || Math.floor(totalAmbulances * 0.7);
+            const maintenanceAmbulances = ambulances.filter(a => a.status === 'maintenance').length || Math.floor(totalAmbulances * 0.2);
+            
+            // Get unique hospitals
+            const hospitals = new Set(ambulances.map(a => a.hospitalName).filter(Boolean));
+            const totalHospitals = hospitals.size || 4;
+            
+            document.getElementById('total-ambulances').textContent = totalAmbulances;
+            document.getElementById('active-ambulances').textContent = activeAmbulances;
+            document.getElementById('maintenance-ambulances').textContent = maintenanceAmbulances;
+            document.getElementById('total-hospitals').textContent = totalHospitals;
+        }
+
+        // Global chart instances
+        let ambulancePerformanceChartInstance = null;
+        let ambulanceDistributionChartInstance = null;
+        let responseTimeChartInstance = null;
+        let successRateChartInstance = null;
+
+        // Update dashboard charts with fixed height
+        function updateDashboardCharts() {
+            const ambulances = allAmbulances;
+            
+            // Destroy existing charts to prevent duplicates
+            if (ambulancePerformanceChartInstance) ambulancePerformanceChartInstance.destroy();
+            if (ambulanceDistributionChartInstance) ambulanceDistributionChartInstance.destroy();
+            if (responseTimeChartInstance) responseTimeChartInstance.destroy();
+            if (successRateChartInstance) successRateChartInstance.destroy();
+            
+            // Create ambulance performance chart
+            const perfCtx = document.getElementById('ambulancePerformanceChart').getContext('2d');
+            ambulancePerformanceChartInstance = new Chart(perfCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                    datasets: [{
+                        label: 'Response Time (mins)',
+                        data: [12, 10, 8, 11, 9, 7, 8],
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Success Rate (%)',
+                        data: [85, 88, 92, 90, 94, 93, 95],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    }
+                }
+            });
+            
+            // Create ambulance distribution chart
+            const distCtx = document.getElementById('ambulanceDistributionChart').getContext('2d');
+            ambulanceDistributionChartInstance = new Chart(distCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Active', 'Inactive', 'Maintenance'],
+                    datasets: [{
+                        data: [70, 10, 20],
+                        backgroundColor: ['#10b981', '#6b7280', '#ef4444'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        }
+                    }
+                }
+            });
+            
+            // Create response time chart
+            const respCtx = document.getElementById('responseTimeChart').getContext('2d');
+            responseTimeChartInstance = new Chart(respCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Avg. Response Time (mins)',
+                        data: [9, 12, 8, 10, 7, 6, 11],
+                        backgroundColor: '#2563eb'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+            
+            // Create success rate chart
+            const succCtx = document.getElementById('successRateChart').getContext('2d');
+            successRateChartInstance = new Chart(succCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                    datasets: [{
+                        label: 'Success Rate (%)',
+                        data: [85, 90, 88, 92],
+                        borderColor: '#10b981',
+                        tension: 0.4,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            min: 80,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        // Filter ambulances
+        document.getElementById('filterBtn').addEventListener('click', function() {
+            const name = document.getElementById('filterName').value.trim();
+            const location = document.getElementById('filterLocation').value.trim();
+            const hospitalName = document.getElementById('filterHospital').value;
+            const status = document.getElementById('filterStatus').value;
+            
+            // Filter the ambulances locally
+            filteredAmbulances = allAmbulances.filter(ambulance => {
+                return (
+                    (name === '' || (ambulance.name && ambulance.name.toLowerCase().includes(name.toLowerCase()))) &&
+                    (location === '' || (ambulance.location && ambulance.location.toLowerCase().includes(location.toLowerCase()))) &&
+                    (hospitalName === '' || (ambulance.hospitalName && ambulance.hospitalName === hospitalName)) &&
+                    (status === '' || (ambulance.status && ambulance.status === status))
+                );
+            });
+            
+            displayAmbulances(filteredAmbulances);
+        });
+
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('filterName').value = '';
+            document.getElementById('filterLocation').value = '';
+            document.getElementById('filterHospital').value = '';
+            document.getElementById('filterStatus').value = '';
+            
+            filteredAmbulances = [...allAmbulances];
+            displayAmbulances(filteredAmbulances);
+        }
+
+        document.getElementById('clearFilterBtn').addEventListener('click', clearFilters);
+
+        // Notify driver function
+        async function notifyDriver(ambulanceName, hospitalName) {
+            if (!ambulanceName) {
+                showAlert('Error', 'Ambulance name is missing!', 'error');
+                return;
+            }
+
+            try {
+                showAlert('Sending Notification', 'Notifying driver...', 'info');
+                
+                const response = await fetch("http://localhost:3000/notify", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        ambulanceName, 
+                        hospitalName: hospitalName || 'Central Hospital'
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || "Failed to notify driver");
+                }
+
+                const data = await response.json();
+                showAlert('Success', data.message || `Driver of ${ambulanceName} notified successfully`, 'success');
+
+                // Add to activity list
+                addActivity(`Notification sent to driver of ${ambulanceName}`, 'fa-bell');
+
+            } catch (error) {
+                console.error("Error notifying driver:", error.message);
+                showAlert('Error', `Failed to notify driver: ${error.message}`, 'error');
+            }
+        }
+
+        // View ambulance details
+        function viewDetails(ambulanceName) {
+            const ambulance = allAmbulances.find(a => a.name === ambulanceName);
+            if (!ambulance) return;
+            
+            showAlert('Ambulance Details', `
+                <div class="ambulance-detail-popup">
+                    <h3>${ambulance.name}</h3>
+                    <p><strong>Status:</strong> ${ambulance.status || 'Active'}</p>
+                    <p><strong>Location:</strong> ${ambulance.location || 'N/A'}</p>
+                    <p><strong>Hospital:</strong> ${ambulance.hospitalName || 'Not assigned'}</p>
+                    <p><strong>Driver:</strong> ${ambulance.driver || 'Not assigned'}</p>
+                    <p><strong>Last Maintenance:</strong> 2025-02-15</p>
+                    <p><strong>Next Maintenance Due:</strong> 2025-04-15</p>
+                </div>
+            `, 'info', 10000);
+            
+            // Add to activity list
+            addActivity(`Viewed details of ambulance ${ambulanceName}`, 'fa-info-circle');
+        }
+
+        // Show alert/toast notification
+        function showAlert(title, message, type = 'info', duration = 5000) {
+            // Create alert container if it doesn't exist
+            let alertContainer = document.getElementById('alert-container');
+            if (!alertContainer) {
+                alertContainer = document.createElement('div');
+                alertContainer.id = 'alert-container';
+                alertContainer.style.position = 'fixed';
+                alertContainer.style.top = '20px';
+                alertContainer.style.right = '20px';
+                alertContainer.style.zIndex = '9999';
+                document.body.appendChild(alertContainer);
+            }
+            
+            // Create alert element
+            const alertEl = document.createElement('div');
+            alertEl.style.backgroundColor = 'white';
+            alertEl.style.borderRadius = '8px';
+            alertEl.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+            alertEl.style.padding = '15px 20px';
+            alertEl.style.marginBottom = '10px';
+            alertEl.style.width = '350px';
+            alertEl.style.animation = 'fadeIn 0.3s ease forwards';
+            alertEl.style.position = 'relative';
+            alertEl.style.borderLeft = '4px solid';
+            
+            // Set alert type color
+            switch (type) {
+                case 'success':
+                    alertEl.style.borderLeftColor = 'var(--secondary-color)';
+                    break;
+                case 'error':
+                    alertEl.style.borderLeftColor = 'var(--danger-color)';
+                    break;
+                case 'warning':
+                    alertEl.style.borderLeftColor = 'var(--accent-color)';
+                    break;
+                default:
+                    alertEl.style.borderLeftColor = 'var(--primary-color)';
+            }
+            
+            // Create alert content
+            alertEl.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                    <h4 style="margin: 0; font-size: 16px; color: var(--text-color);">${title}</h4>
+                    <button style="background: none; border: none; cursor: pointer; font-size: 18px; color: var(--text-light);">&times;</button>
+                </div>
+                <div style="color: var(--text-light); font-size: 14px;">${message}</div>
+            `;
+            
+            // Add close functionality
+            const closeBtn = alertEl.querySelector('button');
+            closeBtn.addEventListener('click', () => {
+                alertContainer.removeChild(alertEl);
+            });
+            
+            // Add to container
+            alertContainer.appendChild(alertEl);
+            
+            // Auto-remove after duration
+            if (duration) {
+                setTimeout(() => {
+                    if (alertEl.parentNode === alertContainer) {
+                        alertContainer.removeChild(alertEl);
+                    }
+                }, duration);
+            }
+        }
+
+        // Add activity to the recent activity list
+        function addActivity(text, iconClass = 'fa-circle', timeAgo = 'Just now') {
+            const activityList = document.getElementById('activity-list');
+            const activityItem = document.createElement('div');
+            activityItem.className = 'activity-item fade-in';
+            
+            activityItem.innerHTML = `
+                <div class="activity-icon">
+                    <i class="fas ${iconClass}"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-title">${text}</div>
+                    <div class="activity-time">${timeAgo}</div>
+                </div>
+            `;
+            
+            // Insert at the beginning of the list
+            if (activityList.firstChild) {
+                activityList.insertBefore(activityItem, activityList.firstChild);
+            } else {
+                activityList.appendChild(activityItem);
+            }
+            
+            // Remove oldest activity if more than 5
+            if (activityList.children.length > 5) {
+                activityList.removeChild(activityList.lastChild);
+            }
+        }
+
+        // Modal functions
+        function closeModal() {
+            document.getElementById('ambulanceModal').style.display = 'none';
+        }
+
+        async function getAmbulancesForLocation(location) {
+            try {
+                const response = await fetch(`http://localhost:3000/ambulances?location=${encodeURIComponent(location)}`);
+                const ambulances = await response.json();
+
+                const ambulanceList = document.getElementById("ambulanceList");
+                ambulanceList.innerHTML = "";
+
+                if (ambulances.length === 0) {
+                    ambulanceList.innerHTML = "<p class='no-results'>No ambulances available in this location.</p>";
+                } else {
+                    ambulances.forEach(ambulance => {
+                        ambulanceList.innerHTML += `
+                            <div class="ambulance-card">
+                                <div>
+                                    <h3>${ambulance.name}</h3>
+                                    <p>Location: ${ambulance.location}</p>
+                                    <p>Hospital: ${ambulance.hospitalName || 'Not assigned'}</p>
+                                </div>
+                                <button class="notify-btn" onclick="notifyAmbulance('${ambulance.id || ambulance.name}')">Notify</button>
+                            </div>
+                        `;
+                    });
+                }
+
+                document.getElementById("ambulanceModal").style.display = "block";
+            } catch (error) {
+                console.error("Error fetching ambulances:", error);
+                showAlert('Error', 'Failed to fetch ambulances for this location', 'error');
+            }
+        }
+
+        function notifyAmbulance(ambulanceId) {
+            notifyDriver(ambulanceId);
+            closeModal();
+        }
+
+        // Mock data for testing if API is not available
+        function generateMockAmbulances(count = 12) {
+            const mockAmbulances = [];
+            const hospitals = ['City Hospital', 'General Hospital', 'Metro Medical Center', 'Community Health'];
+            const locations = ['Downtown', 'Uptown', 'West District', 'East District', 'North Side', 'South End'];
+            const statuses = ['active', 'inactive', 'maintenance'];
+            const drivers = ['John Doe', 'Jane Smith', 'Mark Johnson', 'Sarah Williams', 'Michael Brown'];
+            
+            for (let i = 1; i <= count; i++) {
+                const id = `AMB-${i.toString().padStart(3, '0')}`;
+                mockAmbulances.push({
+                    id: i,
+                    name: id,
+                    status: statuses[Math.floor(Math.random() * statuses.length)],
+                    location: locations[Math.floor(Math.random() * locations.length)],
+                    hospitalName: Math.random() > 0.2 ? hospitals[Math.floor(Math.random() * hospitals.length)] : null,
+                    driver: Math.random() > 0.3 ? drivers[Math.floor(Math.random() * drivers.length)] : null
+                });
+            }
+            
+            return mockAmbulances;
+        }
+
+        // Initialize dashboard
+        async function initDashboard() {
+            // Update date and time
+            const currentDate = '2025-03-07 04:23:47';
+            document.getElementById('current-date').textContent = currentDate;
+            document.getElementById('footer-date').textContent = currentDate;
+            
+            try {
+                // Try to fetch data from API
+                const ambulances = await fetchAmbulances();
+                
+                // If no ambulances returned or error occurred, use mock data
+                if (!ambulances || ambulances.length === 0) {
+                    console.log('Using mock ambulance data');
+                    allAmbulances = generateMockAmbulances(12);
+                    filteredAmbulances = [...allAmbulances];
+                    displayAmbulances(allAmbulances);
+                    updateDashboardStatistics(allAmbulances);
+                }
+            } catch (error) {
+                console.error('Error during initialization:', error);
+                // Use mock data as fallback
+                allAmbulances = generateMockAmbulances(12);
+                filteredAmbulances = [...allAmbulances];
+                displayAmbulances(allAmbulances);
+                updateDashboardStatistics(allAmbulances);
+            }
+            
+            // Initialize charts
+            updateDashboardCharts();
+            
+            // Set up chart tab functionality
+            setupChartTabs();
+            
+            // Show welcome message
+            setTimeout(() => {
+                showAlert('Welcome donlj', 'Welcome to the FastTrack Admin Dashboard. Last login: 2025-03-06 10:24:15', 'info');
+            }, 1000);
+        }
+
+        // Setup chart tab functionality
+        function setupChartTabs() {
+            const tabButtons = document.querySelectorAll('.chart-tab');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active class from siblings
+                    const siblings = Array.from(this.parentNode.children);
+                    siblings.forEach(sibling => sibling.classList.remove('active'));
+                    
+                    // Add active class to clicked tab
+                    this.classList.add('active');
+                    
+                    // In a real app, this would update the chart data based on the selected tab
+                    // For demo purposes, we'll just add an activity
+                    const chartTitle = this.closest('.chart-container').querySelector('h3').textContent;
+                    const tabName = this.textContent;
+                    addActivity(`Changed ${chartTitle} view to ${tabName}`, 'fa-chart-line');
+                });
+            });
+        }
+
+        // Initialize dashboard on page load
+        window.addEventListener('load', initDashboard);
+
+        // Add pagination functionality
+        document.getElementById('pagination').addEventListener('click', function(e) {
+            if (e.target.classList.contains('page-item') && !e.target.classList.contains('disabled')) {
+                // In a real app, this would fetch data for the selected page
+                // For demo purposes, we'll just update the active page indicator
+                const pageItems = document.querySelectorAll('.page-item');
+                pageItems.forEach(item => item.classList.remove('active'));
+                
+                if (!e.target.classList.contains('fa-chevron-left') && !e.target.classList.contains('fa-chevron-right')) {
+                    e.target.classList.add('active');
+                    // Add activity
+                    addActivity(`Navigated to page ${e.target.textContent}`, 'fa-file');
+                }
+            }
+        });
+
+        // Export function for the export button
+        document.querySelector('.nav-actions .btn-outline').addEventListener('click', function() {
+            showAlert('Exporting Data', 'Preparing export of ambulance data...', 'info');
+            
+            setTimeout(() => {
+                const data = {
+                    exportDate: '2025-03-07 04:25:48',
+                    exportedBy: 'donlj',
+                    ambulances: allAmbulances
+                };
+                
+                // In a real app, this would create a CSV or Excel file
+                // For demo purposes, we'll just show a JSON string
+                const jsonString = JSON.stringify(data, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'ambulance_data_export.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showAlert('Export Complete', 'Ambulance data has been exported successfully', 'success');
+                addActivity('Exported ambulance data', 'fa-download');
+            }, 1500);
+        });
+
+        // Add new ambulance button functionality
+        document.querySelector('.nav-actions .btn:not(.btn-outline)').addEventListener('click', function() {
+            showAlert('Add New Ambulance', `
+                <div style="padding: 10px 0;">
+                    <p>This feature will be available in the next update.</p>
+                    <p>Please check back soon!</p>
+                </div>
+            `, 'info', 5000);
+            
+            addActivity('Attempted to add new ambulance', 'fa-plus');
+        });
+    </script>
+</body>
+</html>

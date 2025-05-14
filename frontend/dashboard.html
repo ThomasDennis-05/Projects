@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background: #007bff;
+            color: #fff;
+            padding: 1rem;
+            text-align: center;
+        }
+        main {
+            padding: 2rem;
+        }
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #f9f9f9;
+            padding: 1.5rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        form label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        form input {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        form button {
+            background: #007bff;
+            color: #fff;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        form button:hover {
+            background: #0056b3;
+        }
+        .ambulance-list {
+            max-width: 600px;
+            margin: 2rem auto;
+        }
+        .ambulance-card {
+            background: #f4f4f4;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .ambulance-card h3 {
+            margin: 0;
+        }
+        .ambulance-card p {
+            margin: 0.5rem 0 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1 id="dashboard-title">Dashboard</h1>
+    </header>
+    <main>
+        <form id="add-ambulance-form">
+            <h2>Add Ambulance Details</h2>
+            <label for="ambulance-name">Ambulance Name:</label>
+            <input type="text" id="ambulance-name" name="ambulance-name" required>
+
+            <label for="ambulance-location">Location:</label>
+            <input type="text" id="ambulance-location" name="ambulance-location" required>
+
+            <label for="ambulance-contact">Contact:</label>
+            <input type="text" id="ambulance-contact" name="ambulance-contact" required>
+
+            <button type="submit">Add Ambulance</button>
+        </form>
+
+        <!-- Admin Views -->
+        <div class="ambulance-list">
+            <h2>Ambulances</h2>
+            <label for="filter">Filter by Name or Location:</label>
+            <input type="text" id="filter" placeholder="Search...">
+            <div id="ambulance-cards">
+                <!-- Ambulance cards will appear here -->
+            </div>
+        </div>
+    </main>
+    <script>
+        const API_BASE_URL = 'http://localhost:3000';
+        const token = localStorage.getItem('jwtToken');
+        const userRole = localStorage.getItem('userRole');
+
+        document.addEventListener("DOMContentLoaded", () => {
+            if (userRole === "admin") {
+                fetchAllAmbulances();
+            } else if (userRole === "hospital") {
+                document.getElementById("add-ambulance-form").style.display = "block";
+                fetchUserAmbulances();
+            }
+        });
+
+        // Add ambulance (Hospital user)
+        document.getElementById("add-ambulance-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById("ambulance-name").value;
+            const location = document.getElementById("ambulance-location").value;
+            const contact = document.getElementById("ambulance-contact").value;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/ambulances`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, location, contact })
+                });
+
+                if (response.ok) {
+                    const newAmbulance = await response.json();
+                    addAmbulanceCard(newAmbulance);
+                    alert(`Ambulance "${newAmbulance.name}" added successfully.`);
+                } else {
+                    alert("Failed to add ambulance");
+                }
+            } catch (error) {
+                console.error(error);
+                alert("An error occurred while adding the ambulance.");
+            }
+        });
+
+        // Fetch all ambulances (Admin)
+        async function fetchAllAmbulances() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/ambulances`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const ambulances = await response.json();
+                ambulances.forEach(addAmbulanceCard);
+            } catch (error) {
+                console.error(error);
+                alert("Failed to load ambulances.");
+            }
+        }
+
+        // Fetch ambulances for the logged-in hospital user
+        async function fetchUserAmbulances() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/ambulances`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const ambulances = await response.json();
+                ambulances.forEach(addAmbulanceCard);
+            } catch (error) {
+                console.error(error);
+                alert("Failed to load ambulances.");
+            }
+        }
+
+        // Add ambulance card to the page
+        function addAmbulanceCard(ambulance) {
+            const card = document.createElement("div");
+            card.classList.add("ambulance-card");
+            card.innerHTML = `
+                <h3>${ambulance.name}</h3>
+                <p><strong>Location:</strong> ${ambulance.location}</p>
+                <p><strong>Contact:</strong> ${ambulance.contact}</p>
+                ${ambulance.addedBy ? `<p><strong>Added by:</strong> ${ambulance.addedBy.name}</p>` : ""}
+            `;
+            document.getElementById("ambulance-cards").appendChild(card);
+        }
+    </script>
+</body>
+</html>

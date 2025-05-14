@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Live Ambulance Tracking</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY"></script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    
+    <style>#map {
+        height: 500px;
+        width: 100%;
+    }
+    </style>
+</head>
+<body>
+    <h2>Ambulance Live Tracking</h2>
+    <div id="map"></div>
+
+    <div id="ambulance-live-location">Waiting for live location updates...</div>
+
+
+    <script>const socket = io("http://localhost:3000");
+
+        socket.on("start_tracking", (data) => {
+            alert(data.message);
+        });
+    
+        socket.on("update_location", (data) => {
+            console.log("Live Location:", data);
+            document.getElementById("ambulance-live-location").innerText =
+                `Ambulance Location: Latitude: ${data.latitude}, Longitude: ${data.longitude}`;
+        });
+    
+        socket.on("reached_hospital", (data) => {
+            alert(data.message);
+        });
+    </script>
+</body>
+</html>

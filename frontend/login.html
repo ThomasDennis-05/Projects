@@ -1,0 +1,447 @@
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Sign Up / Log In</title>
+                
+                <!-- Google Fonts -->
+                <link rel="preconnect" href="https://fonts.googleapis.com">
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200&display=swap" rel="stylesheet">
+                
+                <!-- Font Awesome Icons -->
+                <script src="https://kit.fontawesome.com/73d74b8832.js" crossorigin="anonymous"></script>
+                
+                <style>
+                    /* Reset and Base Styles */
+                    * {
+                        margin: 0;
+                        padding: 0;
+                        font-family: 'Poppins', sans-serif;
+                        box-sizing: border-box;
+                    }
+
+                    /* Body Styling */
+                    body {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                background: linear-gradient(to bottom, rgb(74, 28, 212), #f26cbf); /* Pink Gradient */
+            }
+
+
+
+                    /* Container Styling */
+                    .container {
+                        display: flex;
+                        width: 70%;
+                        height: 80%;
+                        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+                        border-radius: 10px;
+                        overflow: hidden;
+                    }
+
+                    /* Image Box Styling */
+                    .image-box {
+                        flex: 1;
+                        background: no-repeat center center;
+                        background-size: cover;
+                        position: relative;
+                    }
+
+                    .image-login {
+                        background-image: url('https://mfiles.alphacoders.com/101/thumb-350-1012653.webp');
+                    }
+
+                    .form-box {
+                        flex: 1;
+                        background: #fff;
+                        padding: 40px;
+                        text-align: center;
+                        overflow-y: auto;
+                    }
+
+                    .toggle-box {
+                        display: flex;
+                        justify-content: center;
+                        margin-bottom: 20px;
+                    }
+
+                    .toggle-box label {
+                        font-size: 20px;
+                        margin: 0 20px;
+                        cursor: pointer;
+                        color: #828789;
+                        border-bottom: 2px solid transparent;
+                        padding-bottom: 5px;
+                        transition: color 0.3s ease, border-bottom 0.3s ease;
+                    }
+
+                    .toggle-box label.active {
+                        border-bottom: 2px solid #009688;
+                        color: #008c96c7;
+                    }
+
+                    .input-field {
+                        background: #eaeaea;
+                        margin: 15px 0;
+                        display: flex;
+                        align-items: center;
+                        border-radius: 5px;
+                    }
+
+                    input {
+                        width: 100%;
+                        background: transparent;
+                        border: 0;
+                        outline: 0;
+                        padding: 15px;
+                    }
+
+                    .input-field i {
+                        margin-left: 15px;
+                        color: #999;
+                    }
+
+                    .btn {
+                        width: 100%;
+                        background: #009688;
+                        color: #fff;
+                        padding: 15px;
+                        border: 0;
+                        border-radius: 20px;
+                        cursor: pointer;
+                        margin-top: 20px;
+                        transition: background 0.3s ease;
+                    }
+
+                    .btn:hover {
+                        background: #007a68;
+                    }
+
+                    .signup-footer {
+                        margin-top: 20px;
+                        font-size: 14px;
+                    }
+
+                    .signup-footer a {
+                        text-decoration: none;
+                        color: #009688;
+                    }
+                            /* Signup Footer Styling */
+                            .signup-footer {
+                        margin-top: 20px;
+                        font-size: 14px;
+                    }
+
+                    .signup-footer a {
+                        text-decoration: none;
+                        color: #009688;
+                    }
+
+                    /* Remember Me Checkbox Styling */
+                    .remember-me {
+                        display: flex;
+                        align-items: center;
+                        margin: 10px 10px;
+                        font-size: 14px;
+                        color: #828789;
+                    }
+
+                    .remember-me input[type="checkbox"] {
+                        width: 18px;
+                        height: 18px;
+                        margin-right: 12px;
+                        accent-color: #009688; /* Adjust checkbox color */
+                    }
+
+                    /* Divider Styling */
+                    .divider {
+                        display: flex;
+                        align-items: center;
+                        margin: 20px 0;
+                    }
+
+                    .divider hr {
+                        flex: 1;
+                        border: 0.5px solid #ccc;
+                    }
+
+                    .divider span {
+                        margin: 0 10px;
+                        color: #828789;
+                        font-size: 14px;
+                    }
+
+                    /* Google Login Button Styling */
+                    .google-login {
+                        width: 100%;
+                        background: white;
+                        color: #333;
+                        padding: 10px 15px;
+                        border: 1px solid #ccc;
+                        border-radius: 5px;
+                        font-size: 16px;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        transition: background 0.3s ease;
+                    }
+
+                    .google-login img {
+                        width: 30px; /* Adjusted to smaller size */
+                        vertical-align: middle;
+                        margin-right: 10px;
+                    }
+
+                    .google-login:hover {
+                        background: #f4f4f4;
+                    }
+                    select {
+                width: 100%;
+                padding: 15px;
+                background: #eaeaea;
+                border: none;
+                border-radius: 5px;
+                font-size: 16px;
+                color: #333;
+                appearance: none;
+                cursor: pointer;
+                outline: none;
+            }
+
+            select:focus {
+                outline: 2px solid #009688;
+            }
+
+
+                </style>
+            </head>
+            <body>
+
+                <div class="container">
+                    <div class="image-box image-login"></div>
+
+                    <div class="form-box">
+                        <div class="toggle-box">
+                            <b>
+                                <label id="loginLabel" class="active">Log In</label>
+                                <label id="signupLabel">Sign Up</label>
+                            </b>
+                        </div>
+
+                        <form>
+                            <form>
+                                <!-- Login Form -->
+    <!-- Login Form -->
+    <div id="loginForm">
+        <div class="input-field">
+            <i class="fa-solid fa-hospital"></i>
+            <input type="text" id="loginHospitalName" placeholder="HOSPITAL NAME" required>
+        </div>
+        <div class="input-field">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="loginPassword" placeholder="PASSWORD" required>
+        </div>
+        <div class="input-field">
+            <select id="userType">
+                <option value="hospital">Hospital</option>
+                <option value="admin">Admin</option>
+            </select>
+        </div>
+        <div class="remember-me">
+            <input type="checkbox" id="rememberMe">
+            <label for="rememberMe">Remember Me</label>
+        </div>
+        <button type="button" class="btn" id="loginButton">Log In</button>
+        <p class="signup-footer">Don't have an account? <a href="#" id="toSignup">Sign Up</a></p>
+        <div class="divider">
+            <hr>
+            <span>Or</span>
+            <hr>
+        </div>
+        <div>
+            <button class="google-login">
+                <img src="https://logos-world.net/wp-content/uploads/2020/09/Google-Logo.png" alt="Google"> Login with Google
+            </button>
+        </div>
+    </div>
+
+                                
+
+
+
+    <!-- Sign Up Form -->
+    <div id="signupForm" style="display: none;">
+
+        <div class="input-field">
+            <i class="fa-solid fa-hospital"></i>
+            <input type="text" id="hospitalName" placeholder="HOSPITAL NAME" required>
+        </div>
+        <div class="input-field">
+            <i class="fa-solid fa-location-dot"></i>
+            <input type="text" id="hospitalLocation" placeholder="LOCATION" required>
+        </div>
+        <div class="input-field">
+            <i class="fa-solid fa-phone"></i>
+            <input type="text" id="hospitalContact" placeholder="CONTACT NUMBER" required>
+        </div>
+        <div class="input-field">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="signupPassword" placeholder="PASSWORD" required>
+        </div>
+        <div class="input-field">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="confirmPassword" placeholder="CONFIRM PASSWORD" required>
+        </div>
+        <button type="button" class="btn" id="signupButton">Sign Up</button>
+    </div>
+
+                <script>
+                    const signupLabel = document.getElementById("signupLabel");
+                    const loginLabel = document.getElementById("loginLabel");
+                    const signupForm = document.getElementById("signupForm");
+                    const loginForm = document.getElementById("loginForm");
+
+                    signupLabel.onclick = () => {
+                signupForm.style.display = "block";
+                loginForm.style.display = "none";
+                signupLabel.classList.add("active");
+                loginLabel.classList.remove("active");
+
+                // Update the body's background color
+                document.body.style.background = "#001a4d"; // Dark blue
+
+                // Update the image for the signup page
+                const imageBox = document.querySelector('.image-box');
+                imageBox.style.backgroundImage = "url('https://img.freepik.com/premium-photo/red-white-ambulance-is-parked-outside-building-with-number-44-side_1264082-64788.jpg')";
+            };
+
+            signupLabel.onclick = () => {
+                signupForm.style.display = "block";
+                loginForm.style.display = "none";
+                signupLabel.classList.add("active");
+                loginLabel.classList.remove("active");
+
+                // Set dark blue background for Sign-Up page
+                document.body.style.background = "#001a4d"; 
+
+                const imageBox = document.querySelector('.image-box');
+                imageBox.style.backgroundImage = "url('https://img.freepik.com/premium-photo/red-white-ambulance-is-parked-outside-building-with-number-44-side_1264082-64788.jpg')";
+            };
+
+            loginLabel.onclick = () => {
+                loginForm.style.display = "block";
+                signupForm.style.display = "none";
+                loginLabel.classList.add("active");
+                signupLabel.classList.remove("active");
+
+                // Apply the specified gradient background for Login Page
+                document.body.style.background = "linear-gradient(to bottom, rgb(74, 28, 212), #f26cbf)";
+                const imageBox = document.querySelector('.image-box');
+                imageBox.style.backgroundImage = "url('https://mfiles.alphacoders.com/101/thumb-350-1012653.webp')";
+            };
+
+
+
+
+
+            document.getElementById("signupButton").onclick = async () => {
+    const hospitalName = document.getElementById("hospitalName").value;
+    const hospitalLocation = document.getElementById("hospitalLocation").value;
+    const hospitalContact = document.getElementById("hospitalContact").value;
+    const password = document.getElementById("signupPassword").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+
+    if (!hospitalName || !hospitalLocation || !hospitalContact || !password || !confirmPassword) {
+        alert("All fields are required.");
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        alert("Passwords do not match.");
+        return;
+    }
+
+    try {
+        const response = await fetch("http://localhost:3000/hospitals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: hospitalName, location: hospitalLocation, contact: hospitalContact, password }),
+        });
+
+        const result = await response.json();
+            if (!response.ok) {
+                const errorMessage = result.error || 'Signup failed.';
+                alert(errorMessage);
+            } else {
+                alert(result.message);
+                window.location.href = "hospital-dashboard.html";
+            }
+    } catch (error) {
+        console.error(error);
+        alert("An error occurred during sign-up.");
+    }
+    };
+
+    document.getElementById("loginButton").onclick = async () => {
+    const hospitalName = document.getElementById("loginHospitalName").value;
+    const password = document.getElementById("loginPassword").value;
+    const userType = document.getElementById("userType").value;
+
+    if (!hospitalName || !password) {
+        alert("Please fill in both fields.");
+        return;
+    }
+
+    try {
+        let response;
+
+        if (userType === 'admin') {
+            // Admin login
+            if (hospitalName === 'admin' && password === '1234') {
+                response = { ok: true, message: 'Welcome Admin' };
+            } else {
+                response = { ok: false, error: 'Invalid admin credentials' };
+            }
+        } else {
+            // Hospital login
+            const loginData = { hospitalName, password };
+
+            const fetchResponse = await fetch('http://localhost:3000/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(loginData),
+            });
+
+            response = await fetchResponse.json();
+            response.ok = fetchResponse.ok;
+        }
+
+        // Handle response
+        if (response.ok) {
+            alert(response.message || 'Login successful!');
+
+            if (userType !== 'admin') {
+                localStorage.setItem("hospitalName", hospitalName); // Store hospital name
+                window.location.href = "hospital-dashboard.html"; 
+            } else {
+                window.location.href = "admin-dashboard.html"; 
+            }
+        } else {
+            alert(response.error || 'Login failed. Please check your credentials.');
+        }
+    } catch (error) {
+        alert('Error during login. Please try again.');
+        console.error("Login Error:", error);
+    }
+};
+
+
+
+                </script>
+            </body>
+            </html>
+

@@ -1,0 +1,1888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastTrack - Hospital Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary-color: #10b981;
+            --secondary-dark: #059669;
+            --accent-color: #f97316;
+            --danger-color: #ef4444;
+            --text-color: #1f2937;
+            --text-light: #6b7280;
+            --bg-color: #f4f4f9;
+            --white: #ffffff;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Styles */
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: var(--white);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            z-index: 100;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+
+        nav ul li {
+            margin: 0 1rem;
+        }
+
+        nav ul li a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        nav ul li a:hover {
+            color: #ffdd57;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        nav ul li a.active {
+            font-weight: 600;
+        }
+
+        nav ul li a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -0.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 3px;
+            background-color: #ffdd57;
+            border-radius: 3px;
+        }
+
+        /* Profile Container */
+        .profile-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            margin-left: auto;
+            gap: 1.5rem;
+        }
+
+        .profile-icon {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            gap: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            transition: var(--transition);
+        }
+
+        .profile-icon:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .profile-icon img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--white);
+        }
+
+        /* Dropdown Styling */
+        .dropdown {
+            display: none;
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: var(--white);
+            box-shadow: var(--shadow-md);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            width: 200px;
+            z-index: 10;
+        }
+
+        .dropdown a {
+            display: block;
+            padding: 0.75rem 1.25rem;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: var(--transition);
+            font-size: 0.95rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .dropdown a:hover {
+            background: var(--bg-color);
+            color: var(--primary-color);
+        }
+
+        .dropdown a:last-child {
+            border-bottom: none;
+        }
+
+        /* Main Content */
+        main {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            flex: 1;
+            width: 100%;
+        }
+
+        .content-container {
+            display: none;
+        }
+
+        .content-container.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Dashboard Styles */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-header h2 {
+            font-size: 1.75rem;
+            color: var(--text-color);
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background-color: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            text-align: center;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-card i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .stat-card:nth-child(2) i {
+            color: var(--secondary-color);
+        }
+
+        .stat-card:nth-child(3) i {
+            color: var(--accent-color);
+        }
+
+        .stat-card:nth-child(4) i {
+            color: var(--danger-color);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Form Styling */
+        .form-container {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-container h2 {
+            text-align: center;
+            color: var(--text-color);
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-btn {
+            display: block;
+            width: 100%;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            font-size: 1rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+            margin-top: 1.5rem;
+        }
+
+        .form-btn:hover {
+            background: darkorange;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Ambulance List Styles */
+        .ambulances-container {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+        }
+
+        .ambulances-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 1rem;
+        }
+
+        .ambulances-header h2 {
+            font-size: 1.5rem;
+            color: var(--text-color);
+        }
+
+        .ambulances-filter {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .filter-control {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+        }
+
+        .ambulance-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .ambulance-card {
+            background: var(--white);
+            border: none;
+            border-left: 4px solid var(--primary-color);
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+
+        .ambulance-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+            background-color: rgba(243, 180, 65, 0.05);
+        }
+
+        .ambulance-card h3 {
+            margin-bottom: 1rem;
+            color: var(--text-color);
+            font-size: 1.2rem;
+        }
+
+        .ambulance-card p {
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+            color: var(--text-light);
+        }
+
+        .ambulance-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* Button Styling */
+        .btn {
+            padding: 0.5rem 1.25rem;
+            font-size: 0.95rem;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: var(--white);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-accent {
+            background-color: var(--accent-color);
+            color: var(--white);
+        }
+
+        .btn-accent:hover {
+            background-color: darkorange;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: var(--white);
+        }
+
+        .btn-danger:hover {
+            background-color: #b91c1c;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.85rem;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+        
+        .status-badge.active {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--secondary-color);
+        }
+        
+        .status-badge.inactive {
+            background-color: rgba(107, 114, 128, 0.1);
+            color: var(--text-light);
+        }
+        
+        .status-badge.maintenance {
+            background-color: rgba(249, 115, 22, 0.1);
+            color: var(--accent-color);
+        }
+        
+        /* Chart Styles */
+        .chart-container {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .chart-canvas-container {
+            height: 300px;
+            position: relative;
+        }
+
+        /* Modal Styling */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            overflow: auto;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            margin: 10% auto;
+            padding: 1.5rem 2rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            width: 500px;
+            max-width: 90%;
+            position: relative;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .close {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.5rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .close:hover {
+            color: var(--danger-color);
+        }
+
+        #editAmbulanceForm label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        #editAmbulanceForm input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1.25rem;
+            border: 1px solid #e5e7eb;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+        }
+
+        #editAmbulanceForm button {
+            background-color: var(--secondary-color);
+            color: var(--white);
+            width: 100%;
+            margin-top: 1.5rem;
+            padding: 0.75rem;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        #editAmbulanceForm button:hover {
+            background-color: var(--secondary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Tracking Modal */
+        #trackingModal .modal-content {
+            width: 700px;
+            max-width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .tracking-log {
+            background-color: #1e293b;
+            color: #94a3b8;
+            font-family: monospace;
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            white-space: pre-wrap;
+            height: 300px;
+            overflow-y: auto;
+            margin: 1.5rem 0;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            border: 1px solid #334155;
+        }
+
+        .tracking-log .green {
+            color: #22c55e;
+        }
+
+        .tracking-log .blue {
+            color: #3b82f6;
+        }
+
+        .tracking-log .yellow {
+            color: #eab308;
+        }
+
+        .tracking-log .red {
+            color: #ef4444;
+        }
+        
+        /* Toast/Alert Styling */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        .toast {
+            background-color: white;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            width: 350px;
+            animation: fadeIn 0.3s ease forwards;
+            position: relative;
+            border-left: 4px solid var(--primary-color);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .toast-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .toast-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-color);
+        }
+        
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+        
+        .toast-message {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+        
+        .toast-success {
+            border-left-color: var(--secondary-color);
+        }
+        
+        .toast-error {
+            border-left-color: var(--danger-color);
+        }
+        
+        .toast-info {
+            border-left-color: var(--primary-color);
+        }
+        
+        .toast-warning {
+            border-left-color: var(--accent-color);
+        }
+
+        .date-display {
+            color: var(--white);
+            font-size: 0.9rem;
+            opacity: 0.8;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: var(--white);
+            text-align: center;
+            padding: 1rem 0;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            z-index: 100;
+        }
+
+        footer p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        
+        /* Loading spinner */
+        .loader {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary-color);
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive styles */
+        @media (max-width: 992px) {
+            .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .ambulance-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* No data display */
+        .no-data {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-light);
+        }
+        
+        .no-data i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Activity item styles */
+        .activity-item {
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+
+        .activity-icon {
+            background: #e5e7eb;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 500;
+        }
+
+        .activity-time {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FastTrack</h1>
+        <nav>
+            <ul>
+                <li><a href="#" id="home-link" class="active">Home</a></li>
+                <li><a href="#" id="add-link">Add Ambulance</a></li>
+                <li><a href="#" id="ambulances-link">Ambulances</a></li>
+                <li><a href="#" id="contact-link">Contact</a></li>
+            </ul>
+        </nav>
+        <div class="profile-container">
+            <div class="date-display">
+                <i class="fas fa-calendar"></i>
+                <span id="current-date">2025-03-07 14:29:12</span>
+            </div>
+            <div class="profile-icon" onclick="toggleDropdown()">
+                <img src="https://ui-avatars.com/api/?name=donlj&background=random" alt="Profile">
+                <span id="loggedInHospital">donlj</span>
+            </div>
+            <div class="dropdown" id="profileDropdown">
+                <a href="#" onclick="showProfile()"><i class="fas fa-user-circle"></i> Profile Details</a>
+                <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Dashboard/Home Page -->
+        <div id="home-container" class="content-container active">
+            <div class="dashboard-header">
+                <h2>Hospital Dashboard</h2>
+                <div class="dashboard-actions">
+                    <button class="btn btn-primary" onclick="refreshDashboard()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+            </div>
+            
+            <div class="stats-container">
+                <div class="stat-card">
+                    <i class="fas fa-ambulance"></i>
+                    <div class="stat-value" id="total-ambulances">0</div>
+                    <div class="stat-label">Total Ambulances</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-check-circle"></i>
+                    <div class="stat-value" id="active-ambulances">0</div>
+                    <div class="stat-label">Active Ambulances</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-tools"></i>
+                    <div class="stat-value" id="maintenance-ambulances">0</div>
+                    <div class="stat-label">In Maintenance</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-bell"></i>
+                    <div class="stat-value" id="alert-count">0</div>
+                    <div class="stat-label">Recent Alerts</div>
+                </div>
+            </div>
+            
+            <div class="chart-grid">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>Ambulance Status Distribution</h3>
+                    </div>
+                    <div class="chart-canvas-container">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>Recent Activity</h3>
+                    </div>
+                    <div id="recent-activity">
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-plus-circle"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">New ambulance AMB001 added</div>
+                                <div class="activity-time">2 hours ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-bell"></i>
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-title">Driver notification sent for AMB002</div>
+                                <div class="activity-time">3 hours ago</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Add Ambulance Page -->
+        <div id="add-container" class="content-container">
+            <div class="form-container">
+                <h2>Add New Ambulance</h2>
+                <form id="addAmbulanceForm">
+                    <div class="form-group">
+                        <label for="ambulanceName">Ambulance Name</label>
+                        <input type="text" id="ambulanceName" class="form-control" placeholder="E.g., AMB001" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ambulanceLocation">Current Location</label>
+                        <input type="text" id="ambulanceLocation" class="form-control" placeholder="E.g., Downtown" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ambulanceContact">Contact Number</label>
+                        <input type="text" id="ambulanceContact" class="form-control" placeholder="E.g., +1 (555) 123-4567" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ambulanceStatus">Status</label>
+                        <select id="ambulanceStatus" class="form-control">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="maintenance">Maintenance</option>
+                        </select>
+                    </div>
+                    <button type="button" id="addAmbulanceBtn" class="form-btn">
+                        <i class="fas fa-plus"></i> Add Ambulance
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- All Ambulances Page -->
+        <div id="ambulances-container" class="content-container">
+            <div class="ambulances-container">
+                <div class="ambulances-header">
+                    <h2>All Ambulances</h2>
+                    <div class="ambulances-filter">
+                        <select id="statusFilter" class="filter-control">
+                            <option value="">All Statuses</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="maintenance">Maintenance</option>
+                        </select>
+                        <button class="btn btn-sm btn-primary" onclick="applyFilters()">
+                            <i class="fas fa-filter"></i> Filter
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="ambulanceList" class="ambulance-list">
+                    <!-- Ambulances will be loaded here -->
+                    <div class="no-data">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading ambulances...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contact Page -->
+        <div id="contact-container" class="content-container">
+            <div class="form-container">
+                <h2>Contact Support</h2>
+                <div class="form-group">
+                    <label for="contactSubject">Subject</label>
+                    <input type="text" id="contactSubject" class="form-control" placeholder="Subject of your inquiry">
+                </div>
+                <div class="form-group">
+                    <label for="contactMessage">Message</label>
+                    <textarea id="contactMessage" class="form-control" rows="5" placeholder="Enter your message here"></textarea>
+                </div>
+                <button type="button" class="form-btn" onclick="submitContact()">
+                    <i class="fas fa-paper-plane"></i> Send Message
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Edit Ambulance Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditModal()">&times;</span>
+            <h2>Edit Ambulance</h2>
+            <form id="editAmbulanceForm">
+                <input type="hidden" id="editAmbulanceId">
+                <div class="form-group">
+                    <label for="editAmbulanceName">Name</label>
+                    <input type="text" id="editAmbulanceName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="editAmbulanceLocation">Location</label>
+                    <input type="text" id="editAmbulanceLocation" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="editAmbulanceContact">Contact</label>
+                    <input type="text" id="editAmbulanceContact" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="editAmbulanceStatus">Status</label>
+                    <select id="editAmbulanceStatus" class="form-control">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="maintenance">Maintenance</option>
+                    </select>
+                </div>
+                <button type="button" class="btn btn-secondary" onclick="updateAmbulance()">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Tracking Modal -->
+    <div id="trackingModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeTrackingModal()">&times;</span>
+            <h2>Ambulance Tracking</h2>
+            <div class="tracking-log" id="trackingLog">Connecting to ambulance...</div>
+            <button class="btn btn-primary" onclick="closeTrackingModal()">Close</button>
+        </div>
+    </div>
+    
+    <!-- Notification Modal -->
+    <div id="notificationModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeNotificationModal()">&times;</span>
+            <h2>Notify Driver</h2>
+            <p id="notificationMessage">Sending notification to driver...</p>
+            <div class="modal-actions" style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-accent" onclick="trackAmbulance()">
+                    <i class="fas fa-map-marker-alt"></i> Track Ambulance
+                </button>
+                <button class="btn btn-primary" onclick="closeNotificationModal()">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast container for notifications -->
+    <div id="toast-container"></div>
+
+    <footer>
+        <p>&copy; 2025 FastTrack. All Rights Reserved. | Last updated: <span id="footer-date">2025-03-07 14:31:09</span></p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Global Variables
+        let allAmbulances = [];
+        let filteredAmbulances = [];
+        let statusChartInstance = null;
+        
+        document.addEventListener("DOMContentLoaded", () => {
+            // Update date display
+            updateDateTime();
+            
+            // Set logged in hospital name
+            const hospitalName = localStorage.getItem("hospitalName") || "donlj";
+            document.getElementById("loggedInHospital").textContent = hospitalName;
+
+            // Check if user is logged in
+            if (!hospitalName) {
+                showToast('Not Logged In', 'Please log in to access the dashboard', 'warning');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+                return;
+            }
+
+            // Set up navigation events
+            setupNavigation();
+            
+            // Fetch initial data
+            getAmbulances();
+            
+            // Show welcome toast
+            setTimeout(() => {
+                showToast('Welcome Back', `Logged in as ${hospitalName}. Last login: 2025-03-06 15:23:11`, 'info');
+            }, 1000);
+        });
+
+        // Setup navigation
+        function setupNavigation() {
+            const homeLink = document.getElementById('home-link');
+            const addLink = document.getElementById('add-link');
+            const ambulancesLink = document.getElementById('ambulances-link');
+            const contactLink = document.getElementById('contact-link');
+            
+            const homeContainer = document.getElementById('home-container');
+            const addContainer = document.getElementById('add-container');
+            const ambulancesContainer = document.getElementById('ambulances-container');
+            const contactContainer = document.getElementById('contact-container');
+            
+            homeLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                setActiveContainer(homeContainer);
+                setActiveLink(homeLink);
+                refreshDashboard(); // Refresh dashboard data
+            });
+            
+            addLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                setActiveContainer(addContainer);
+                setActiveLink(addLink);
+            });
+            
+            ambulancesLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                setActiveContainer(ambulancesContainer);
+                setActiveLink(ambulancesLink);
+                getAmbulances(); // Refresh ambulance list
+            });
+            
+            contactLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                setActiveContainer(contactContainer);
+                setActiveLink(contactLink);
+            });
+        }
+        
+        function setActiveContainer(container) {
+            const containers = document.querySelectorAll('.content-container');
+            containers.forEach(c => c.classList.remove('active'));
+            container.classList.add('active');
+        }
+        
+        function setActiveLink(link) {
+            const links = document.querySelectorAll('nav a');
+            links.forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+        }
+
+        function toggleDropdown() {
+            const dropdown = document.getElementById("profileDropdown");
+            dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+        }
+        
+        // Close dropdown when clicking outside
+        window.addEventListener('click', function(event) {
+            if (!event.target.closest('.profile-container')) {
+                document.getElementById("profileDropdown").style.display = "none";
+            }
+        });
+        
+        async function showProfile() {
+            const hospitalName = localStorage.getItem("hospitalName") || "donlj";
+            
+            try {
+                showToast('Loading', 'Fetching hospital profile...', 'info', 2000);
+                
+                const response = await fetch(`http://localhost:3000/hospital/${hospitalName}`);
+                const hospital = await response.json();
+
+                if (response.ok) {
+                    showToast('Hospital Profile', 
+                        `Hospital Name: ${hospital.name}<br>` +
+                        `Location: ${hospital.location || 'Not specified'}<br>` +
+                        `Contact: ${hospital.contact || 'Not specified'}<br>` +
+                        `Email: ${hospital.email || 'Not provided'}`, 
+                        'info', 10000);
+                } else {
+                    showToast('Error', hospital.error || "Failed to fetch profile.", 'error');
+                }
+            } catch (error) {
+                console.error("Error fetching profile:", error);
+                showToast('Error', "Error fetching hospital details. Server might be unavailable.", 'error');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem("hospitalName");
+            showToast('Success', 'Logged out successfully.', 'success');
+            setTimeout(() => {
+                window.location.href = "login.html";
+            }, 2000);
+        }
+
+        // Refresh dashboard data
+        async function refreshDashboard() {
+            try {
+                showToast('Refreshing', 'Updating dashboard data...', 'info', 2000);
+                await getAmbulances();
+                updateDashboardStatistics();
+                updateStatusChart();
+            } catch (error) {
+                console.error("Error refreshing dashboard:", error);
+                showToast('Error', 'Failed to refresh dashboard data', 'error');
+            }
+        }
+        
+        // Update dashboard statistics based on ambulances data
+        function updateDashboardStatistics() {
+            const totalAmbulances = allAmbulances.length;
+            const activeAmbulances = allAmbulances.filter(a => a.status === 'active').length;
+            const maintenanceAmbulances = allAmbulances.filter(a => a.status === 'maintenance').length;
+            
+            document.getElementById('total-ambulances').textContent = totalAmbulances;
+            document.getElementById('active-ambulances').textContent = activeAmbulances;
+            document.getElementById('maintenance-ambulances').textContent = maintenanceAmbulances;
+            document.getElementById('alert-count').textContent = Math.floor(Math.random() * 5); // Random for demo
+        }
+        
+        // Update Status Chart
+        function updateStatusChart() {
+            const ctx = document.getElementById('statusChart').getContext('2d');
+            
+            // Count ambulances by status
+            const activeCount = allAmbulances.filter(a => a.status === 'active').length || 1;
+            const inactiveCount = allAmbulances.filter(a => a.status === 'inactive').length || 1;
+            const maintenanceCount = allAmbulances.filter(a => a.status === 'maintenance').length || 1;
+            
+            // Destroy previous chart if it exists
+            if (statusChartInstance) {
+                statusChartInstance.destroy();
+            }
+            
+            // Create new chart
+            statusChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Active', 'Inactive', 'Maintenance'],
+                    datasets: [{
+                        data: [activeCount, inactiveCount, maintenanceCount],
+                        backgroundColor: ['#10b981', '#6b7280', '#f97316'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Fetch ambulances for the logged in hospital
+        async function getAmbulances() {
+            const hospitalName = localStorage.getItem("hospitalName") || "donlj";
+
+            try {
+                const ambulanceList = document.getElementById("ambulanceList");
+                ambulanceList.innerHTML = `
+                    <div class="no-data">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading ambulances...</p>
+                    </div>
+                `;
+
+                const response = await fetch(`http://localhost:3000/ambulances/${hospitalName}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                
+                const ambulances = await response.json();
+                console.log("Fetched ambulances:", ambulances);
+
+                allAmbulances = ambulances;
+                filteredAmbulances = [...ambulances];
+
+                renderAmbulanceList();
+                updateDashboardStatistics();
+                updateStatusChart();
+                
+            } catch (error) {
+                console.error("Error fetching ambulances:", error);
+                showToast('Error', `Failed to load ambulances: ${error.message}`, 'error');
+                
+                document.getElementById("ambulanceList").innerHTML = `
+                    <div class="no-data">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>Failed to load ambulances</p>
+                        <button class="btn btn-primary" onclick="getAmbulances()">
+                            <i class="fas fa-sync"></i> Retry
+                        </button>
+                    </div>
+                `;
+                
+                // Use mock data for demo purposes
+                allAmbulances = generateMockAmbulances();
+                updateDashboardStatistics();
+                updateStatusChart();
+            }
+        }
+
+        // Generate mock ambulances for testing
+        function generateMockAmbulances(count = 5) {
+            const mockAmbulances = [];
+            const statuses = ['active', 'inactive', 'maintenance'];
+            
+            for (let i = 1; i <= count; i++) {
+                mockAmbulances.push({
+                    _id: `mock-id-${i}`,
+                    name: `AMB00${i}`,
+                    location: `Location ${i}`,
+                    contact: `555-000-${i.toString().padStart(4, '0')}`,
+                    status: statuses[Math.floor(Math.random() * statuses.length)],
+                    hospitalName: localStorage.getItem("hospitalName") || "donlj"
+                });
+            }
+            
+            return mockAmbulances;
+        }
+
+        // Render ambulance list based on filtered ambulances
+        function renderAmbulanceList() {
+            const ambulanceList = document.getElementById("ambulanceList");
+            
+            if (filteredAmbulances.length === 0) {
+                ambulanceList.innerHTML = `
+                    <div class="no-data">
+                        <i class="fas fa-ambulance"></i>
+                        <p>No ambulances found</p>
+                        <p>Add your first ambulance using the "Add Ambulance" page</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            ambulanceList.innerHTML = '';
+            filteredAmbulances.forEach(ambulance => {
+                ambulanceList.innerHTML += createAmbulanceCard(ambulance);
+            });
+        }
+
+        // Create HTML for an ambulance card
+        function createAmbulanceCard(ambulance) {
+            const ambulanceId = ambulance._id || ambulance.id || `temp-${Date.now()}`;
+            const status = ambulance.status || 'active';
+            
+            return `
+                <div class="ambulance-card" id="ambulance-${ambulanceId}">
+                    <span class="status-badge ${status}">${status}</span>
+                    <h3>${ambulance.name}</h3>
+                                        <p><i class="fas fa-map-marker-alt"></i> Location: <span id="location-${ambulanceId}">${ambulance.location}</span></p>
+                    <p><i class="fas fa-phone"></i> Contact: <span id="contact-${ambulanceId}">${ambulance.contact}</span></p>
+                    
+                    <div class="ambulance-actions">
+                        <button class="btn btn-sm btn-primary" onclick="openEditModal('${ambulanceId}', '${ambulance.name}', '${ambulance.location}', '${ambulance.contact}', '${status}')">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="removeAmbulance('${ambulanceId}')">
+                            <i class="fas fa-trash"></i> Remove
+                        </button>
+                        <button class="btn btn-sm btn-secondary" onclick="notifyDriver('${ambulance.name}', '${ambulance.contact}')">
+                            <i class="fas fa-bell"></i> Notify
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Filter ambulances based on selected criteria
+        function applyFilters() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            filteredAmbulances = allAmbulances.filter(ambulance => {
+                // Apply status filter if selected
+                if (statusFilter && ambulance.status !== statusFilter) {
+                    return false;
+                }
+                
+                return true;
+            });
+            
+            renderAmbulanceList();
+            showToast('Filters Applied', `Showing ${filteredAmbulances.length} ambulances`, 'info', 3000);
+        }
+
+        // Remove ambulance function
+        async function removeAmbulance(id) {
+            console.log("Removing ambulance with ID:", id);
+
+            const confirmDelete = confirm("Are you sure you want to remove this ambulance?");
+            if (!confirmDelete) return;
+
+            try {
+                // Check if it's a mock ID (starts with "mock-")
+                if (id.startsWith('mock-') || id.startsWith('temp-')) {
+                    // Remove from local arrays without API call
+                    allAmbulances = allAmbulances.filter(a => a._id !== id && a.id !== id);
+                    filteredAmbulances = filteredAmbulances.filter(a => a._id !== id && a.id !== id);
+                    
+                    document.getElementById(`ambulance-${id}`).remove();
+                    showToast('Success', 'Ambulance removed successfully.', 'success');
+                    
+                    // Update dashboard
+                    updateDashboardStatistics();
+                    updateStatusChart();
+                    return;
+                }
+
+                // Show loading toast
+                showToast('Processing', 'Removing ambulance...', 'info', 2000);
+
+                const response = await fetch(`http://localhost:3000/ambulances/${id}`, {
+                    method: "DELETE",
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Remove from arrays
+                    allAmbulances = allAmbulances.filter(a => a._id !== id && a.id !== id);
+                    filteredAmbulances = filteredAmbulances.filter(a => a._id !== id && a.id !== id);
+                    
+                    showToast('Success', 'Ambulance removed successfully.', 'success');
+                    document.getElementById(`ambulance-${id}`).remove();
+                    
+                    // Update dashboard
+                    updateDashboardStatistics();
+                    updateStatusChart();
+                } else {
+                    showToast('Error', data.error || 'Error removing ambulance.', 'error');
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                showToast('Error', 'Failed to remove ambulance. Server may be unavailable.', 'error');
+            }
+        }
+
+        // Open Edit Modal
+        function openEditModal(id, name, location, contact, status) {
+            document.getElementById("editAmbulanceId").value = id;
+            document.getElementById("editAmbulanceName").value = name;
+            document.getElementById("editAmbulanceLocation").value = location;
+            document.getElementById("editAmbulanceContact").value = contact;
+            document.getElementById("editAmbulanceStatus").value = status || 'active';
+            document.getElementById("editModal").style.display = "block";
+        }
+
+        // Close Edit Modal
+        function closeEditModal() {
+            document.getElementById("editModal").style.display = "none";
+        }
+
+        // Update ambulance
+        async function updateAmbulance() {
+            const id = document.getElementById("editAmbulanceId").value;
+            const name = document.getElementById("editAmbulanceName").value.trim();
+            const location = document.getElementById("editAmbulanceLocation").value.trim();
+            const contact = document.getElementById("editAmbulanceContact").value.trim();
+            const status = document.getElementById("editAmbulanceStatus").value;
+
+            if (!name || !location || !contact) {
+                showToast('Error', 'Please fill in all required fields.', 'error');
+                return;
+            }
+
+            try {
+                // Check if it's a mock ID
+                if (id.startsWith('mock-') || id.startsWith('temp-')) {
+                    // Update local arrays without API call
+                    allAmbulances = allAmbulances.map(a => {
+                        if ((a._id === id) || (a.id === id)) {
+                            return { ...a, name, location, contact, status };
+                        }
+                        return a;
+                    });
+                    
+                    filteredAmbulances = filteredAmbulances.map(a => {
+                        if ((a._id === id) || (a.id === id)) {
+                            return { ...a, name, location, contact, status };
+                        }
+                        return a;
+                    });
+                    
+                    // Update UI
+                    const ambulance = { _id: id, name, location, contact, status };
+                    document.getElementById(`ambulance-${id}`).outerHTML = createAmbulanceCard(ambulance);
+                    
+                    showToast('Success', 'Ambulance updated successfully.', 'success');
+                    closeEditModal();
+                    
+                    // Update dashboard
+                    updateDashboardStatistics();
+                    updateStatusChart();
+                    return;
+                }
+
+                // Show loading toast
+                showToast('Processing', 'Updating ambulance information...', 'info', 2000);
+
+                const response = await fetch(`http://localhost:3000/ambulances/${id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name, location, contact, status }),
+                });
+
+                const responseData = await response.json();
+
+                if (response.ok) {
+                    // Update local arrays
+                    allAmbulances = allAmbulances.map(a => {
+                        if ((a._id === id) || (a.id === id)) {
+                            return { ...a, name, location, contact, status };
+                        }
+                        return a;
+                    });
+                    
+                    filteredAmbulances = filteredAmbulances.map(a => {
+                        if ((a._id === id) || (a.id === id)) {
+                            return { ...a, name, location, contact, status };
+                        }
+                        return a;
+                    });
+                    
+                    showToast('Success', 'Ambulance updated successfully.', 'success');
+                    
+                    // Update UI
+                    const ambulance = { _id: id, name, location, contact, status };
+                    document.getElementById(`ambulance-${id}`).outerHTML = createAmbulanceCard(ambulance);
+                    closeEditModal();
+                    
+                    // Update dashboard
+                    updateDashboardStatistics();
+                    updateStatusChart();
+                } else {
+                    console.error("Update Error:", responseData);
+                    showToast('Error', responseData.error || "Error updating ambulance.", 'error');
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                showToast('Error', 'Failed to update ambulance. Server may be unavailable.', 'error');
+            }
+        }
+        
+        // Close notification modal
+        function closeNotificationModal() {
+            document.getElementById("notificationModal").style.display = "none";
+        }
+        
+        // Close tracking modal
+        function closeTrackingModal() {
+            document.getElementById("trackingModal").style.display = "none";
+        }
+
+        // Notify driver function
+        function notifyDriver(ambulanceName, contactInfo) {
+            // Show notification modal
+            document.getElementById("notificationModal").style.display = "block";
+            document.getElementById("notificationMessage").innerHTML = `
+                <p><strong>Notifying driver with contact:</strong> ${contactInfo}</p>
+                <p><i class="fas fa-spinner fa-spin"></i> Sending emergency notification...</p>
+            `;
+            
+            // Simulate API call to notify driver
+            setTimeout(() => {
+                document.getElementById("notificationMessage").innerHTML = `
+                    <p class="green" style="color: #10b981"><i class="fas fa-check-circle"></i> <strong>Driver notified successfully!</strong></p>
+                    <p><strong>Ambulance:</strong> ${ambulanceName}</p>
+                    <p><strong>Contact:</strong> ${contactInfo}</p>
+                    <p><strong>Status:</strong> <span style="color: #2563eb">Emergency mode activated</span></p>
+                    <p style="color: #f97316"><i class="fas fa-info-circle"></i> Click "Track Ambulance" to monitor real-time movement</p>
+                `;
+                
+                showToast('Success', `Driver of ${ambulanceName} notified successfully.`, 'success');
+                
+                // Add to activity list
+                addActivity(`Notified driver of ${ambulanceName}`);
+            }, 2000);
+        }
+
+        // Track ambulance function
+        function trackAmbulance() {
+            // Close notification modal
+            closeNotificationModal();
+            
+            // Open tracking modal
+            document.getElementById("trackingModal").style.display = "block";
+            const trackingLog = document.getElementById("trackingLog");
+            trackingLog.innerHTML = "Connecting to ambulance...";
+            
+            // Simulate real-time tracking updates
+            setTimeout(() => {
+                trackingLog.innerHTML = "Python script output: Driver notified for emergency mode.";
+                
+                const trackingData = [
+                    { type: 'location', text: "Ambulance AMB001 started moving... Current location: (40.74884550340494, -73.98543095214576)" },
+                    { type: 'area', text: "Ambulance AMB001 entering Area A..." },
+                    { type: 'signal', text: "Approaching signal 001... Signal turning GREEN." },
+                    { type: 'signal', text: "Signal 001 is now GREEN. Ambulance passes through." },
+                    { type: 'signal', text: "Signal 001 has turned RED after the ambulance passes." },
+                    { type: 'location', text: "Ambulance AMB001 started moving... Current location: (40.74873378969799, -73.98540770484614)" },
+                    { type: 'area', text: "Ambulance AMB001 entering Area B..." },
+                    { type: 'signal', text: "Approaching signal 002... Signal turning GREEN." },
+                    { type: 'signal', text: "Signal 002 is now GREEN. Ambulance passes through." },
+                    { type: 'signal', text: "Signal 002 has turned RED after the ambulance passes." },
+                    { type: 'location', text: "Ambulance AMB001 started moving... Current location: (40.74874133382885, -73.98548596595558)" },
+                    { type: 'area', text: "Ambulance AMB001 entering Area C..." },
+                    { type: 'signal', text: "Approaching signal 003... Signal turning GREEN." },
+                    { type: 'signal', text: "Signal 003 is now GREEN. Ambulance passes through." },
+                    { type: 'signal', text: "Signal 003 has turned RED after the ambulance passes." },
+                    { type: 'location', text: "Ambulance AMB001 started moving... Current location: (40.748902359524564, -73.98535534825594)" },
+                    { type: 'area', text: "Ambulance AMB001 entering Area D..." },
+                    { type: 'signal', text: "Approaching signal 004... Signal turning GREEN." },
+                    { type: 'signal', text: "Signal 004 is now GREEN. Ambulance passes through." },
+                    { type: 'signal', text: "Signal 004 has turned RED after the ambulance passes." },
+                    { type: 'location', text: "Ambulance AMB001 started moving... Current location: (40.74888031158649, -73.98540669840787)" },
+                    { type: 'notification', text: "Notification sent to the hospital for patient preparation." },
+                    { type: 'area', text: "Ambulance AMB001 entering Area E..." },
+                    { type: 'signal', text: "Approaching signal 005... Signal turning GREEN." },
+                    { type: 'signal', text: "Signal 005 is now GREEN. Ambulance passes through." },
+                    { type: 'signal', text: "Signal 005 has turned RED after the ambulance passes." },
+                    { type: 'location', text: "Ambulance AMB001 started moving... Current location: (40.74886316939589, -73.98537783403604)" },
+                    { type: 'location', text: "Ambulance AMB001 started moving... Current location: (40.74884407090164, -73.98535417054909)" },
+                    { type: 'hospital', text: "Ambulance AMB001 reached the hospital." },
+                    { type: 'route', text: "Route log: ['A', 'B', 'C', 'D', 'E']" },
+                    { type: 'end', text: "Emergency mode deactivated. Signals are back to normal." }
+                ];
+                
+                let index = 0;
+                const interval = setInterval(() => {
+                    if (index < trackingData.length) {
+                        const item = trackingData[index];
+                        let colorClass = '';
+                        
+                        switch(item.type) {
+                            case 'location':
+                                colorClass = 'blue';
+                                break;
+                            case 'signal':
+                                colorClass = 'green';
+                                break;
+                            case 'notification':
+                            case 'hospital':
+                                colorClass = 'yellow';
+                                break;
+                            case 'end':
+                                colorClass = 'red';
+                                break;
+                        }
+                        
+                        trackingLog.innerHTML += `\n\n<span class="${colorClass}">${item.text}</span>`;
+                        trackingLog.scrollTop = trackingLog.scrollHeight; // Scroll to bottom
+                        index++;
+                    } else {
+                        clearInterval(interval);
+                        
+                        // Add to activity list
+                        addActivity("Ambulance AMB001 completed emergency route");
+                    }
+                }, 1000);
+            }, 1500);
+        }
+
+        // Add ambulance functionality
+        document.getElementById("addAmbulanceBtn").onclick = async () => {
+            const name = document.getElementById("ambulanceName").value.trim();
+            const location = document.getElementById("ambulanceLocation").value.trim();
+            const contact = document.getElementById("ambulanceContact").value.trim();
+            const status = document.getElementById("ambulanceStatus").value;
+            const hospitalName = localStorage.getItem("hospitalName") || "donlj";
+
+            if (!name || !location || !contact) {
+                showToast('Error', 'Please fill in all required fields.', 'error');
+                return;
+            }
+
+            const requestData = { name, location, contact, status, hospitalName };
+
+            try {
+                const addButton = document.getElementById("addAmbulanceBtn");
+                addButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+                addButton.disabled = true;
+                
+                // Show loading toast
+                showToast('Processing', 'Adding new ambulance...', 'info', 2000);
+                
+                const response = await fetch("http://localhost:3000/ambulances", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(requestData),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log("Server response:", result);
+
+                // Create a new ambulance object with the returned ID if available
+                const newAmbulance = { 
+                    _id: result.ambulance && result.ambulance._id ? result.ambulance._id : `temp-${Date.now()}`,
+                    name, 
+                    location, 
+                    contact, 
+                    status,
+                    hospitalName
+                };
+                
+                // Add to arrays
+                allAmbulances.unshift(newAmbulance);
+                filteredAmbulances = [...allAmbulances];
+                
+                showToast('Success', `Ambulance ${name} added successfully.`, 'success');
+                
+                // Clear form
+                document.getElementById("ambulanceName").value = '';
+                document.getElementById("ambulanceLocation").value = '';
+                document.getElementById("ambulanceContact").value = '';
+                document.getElementById("ambulanceStatus").value = 'active';
+                
+                // Add activity
+                addActivity(`Added new ambulance: ${name}`);
+                
+                // Update dashboard
+                updateDashboardStatistics();
+                updateStatusChart();
+                
+                // Redirect to ambulances list
+                document.getElementById('ambulances-link').click();
+                
+            } catch (error) {
+                console.error("Error adding ambulance:", error);
+                showToast('Error', `Failed to add ambulance: ${error.message}. Adding locally instead.`, 'warning');
+                
+                // Create a temporary ambulance with a temporary ID for demonstration
+                const tempId = `temp-${Date.now()}`;
+                const tempAmbulance = { 
+                    _id: tempId, 
+                    name, 
+                    location, 
+                    contact, 
+                    status,
+                    hospitalName
+                };
+                
+                // Add to arrays
+                allAmbulances.unshift(tempAmbulance);
+                filteredAmbulances = [...allAmbulances];
+                
+                // Clear form
+                document.getElementById("ambulanceName").value = '';
+                document.getElementById("ambulanceLocation").value = '';
+                document.getElementById("ambulanceContact").value = '';
+                document.getElementById("ambulanceStatus").value = 'active';
+                
+                // Add activity
+                addActivity(`Added new ambulance: ${name} (local only)`);
+                
+                // Update dashboard
+                updateDashboardStatistics();
+                updateStatusChart();
+                
+                // Redirect to ambulances list
+                document.getElementById('ambulances-link').click();
+            } finally {
+                const addButton = document.getElementById("addAmbulanceBtn");
+                addButton.innerHTML = '<i class="fas fa-plus"></i> Add Ambulance';
+                addButton.disabled = false;
+            }
+        };
+        
+        // Handle contact form submission
+        function submitContact() {
+            const subject = document.getElementById('contactSubject').value.trim();
+            const message = document.getElementById('contactMessage').value.trim();
+            
+            if (!subject || !message) {
+                showToast('Error', 'Please fill in both subject and message.', 'error');
+                return;
+            }
+            
+            // Simulate sending message
+            showToast('Sending', 'Sending your message...', 'info', 2000);
+            
+            setTimeout(() => {
+                showToast('Success', 'Your message has been sent. We will get back to you soon.', 'success');
+                document.getElementById('contactSubject').value = '';
+                document.getElementById('contactMessage').value = '';
+            }, 2000);
+        }
+        
+        // Add activity to the dashboard
+        function addActivity(message) {
+            const recentActivity = document.getElementById('recent-activity');
+            if (!recentActivity) return;
+            
+            const now = new Date();
+            const timeString = 'Just now';
+            
+            const activityHTML = `
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fas fa-bell" style="color: #2563eb;"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">${message}</div>
+                        <div class="activity-time">${timeString}</div>
+                    </div>
+                </div>
+            `;
+            
+            recentActivity.innerHTML = activityHTML + recentActivity.innerHTML;
+            
+            // Limit to 5 activities
+            const activities = recentActivity.querySelectorAll('.activity-item');
+            if (activities.length > 5) {
+                activities[activities.length - 1].remove();
+            }
+        }
+        
+        // Toast notification system
+        function showToast(title, message, type = 'info', duration = 5000) {
+            const toastContainer = document.getElementById('toast-container') || createToastContainer();
+            
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            
+            toast.innerHTML = `
+                <div class="toast-header">
+                    <div class="toast-title">${title}</div>
+                    <button class="toast-close">&times;</button>
+                </div>
+                <div class="toast-message">${message}</div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Add close functionality
+            toast.querySelector('.toast-close').addEventListener('click', () => {
+                toast.remove();
+            });
+            
+            // Auto-remove after duration
+            if (duration) {
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.remove();
+                    }
+                }, duration);
+            }
+        }
+        
+        // Create toast container if it doesn't exist
+        function createToastContainer() {
+            const container = document.createElement('div');
+            container.id = 'toast-container';
+            document.body.appendChild(container);
+            return container;
+        }
+        
+        // Close modals when clicking outside
+        window.addEventListener('click', function(event) {
+            const editModal = document.getElementById('editModal');
+            const notificationModal = document.getElementById('notificationModal');
+            const trackingModal = document.getElementById('trackingModal');
+            
+            if (event.target === editModal) {
+                closeEditModal();
+            }
+            
+            if (event.target === notificationModal) {
+                closeNotificationModal();
+            }
+            
+            if (event.target === trackingModal) {
+                closeTrackingModal();
+            }
+        });
+
+        // Update date and time
+        function updateDateTime() {
+            const currentDate = '2025-03-07 14:33:50';
+            document.getElementById('current-date').textContent = currentDate;
+            document.getElementById('footer-date').textContent = currentDate;
+        }
+    </script>
+</body>
+</html>

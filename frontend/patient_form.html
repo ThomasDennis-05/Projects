@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Form - FastTrack</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary-color: #10b981;
+            --secondary-dark: #059669;
+            --accent-color: #f97316;
+            --danger-color: #ef4444;
+            --text-color: #1f2937;
+            --text-light: #6b7280;
+            --bg-color: #f3f4f6;
+            --white: #ffffff;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: var(--white);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 10;
+            position: sticky;
+            top: 0;
+        }
+
+        header .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        
+        header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        header .user-info span {
+            font-weight: 500;
+        }
+        
+        header .user-info img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--white);
+        }
+        .main-container {
+        flex: 1;
+        display: flex;
+        max-width: 1600px; /* Increased from 1280px */
+        margin: 2rem auto;
+        padding: 0 2rem;
+        gap: 2.5rem;
+        align-items: flex-start;
+    }
+
+    @media screen and (max-width: 1800px) {
+        .main-container {
+            max-width: 95%;
+        }
+    }
+
+    @media screen and (max-width: 992px) {
+        .main-container {
+            flex-direction: column;
+            gap: 2rem;
+            padding: 0 1.5rem;
+        }
+    }
+
+    /* Form container */
+    .form-container {
+        background: var(--white);
+        border-radius: var(--radius-lg);
+        padding: 2.5rem;
+        box-shadow: var(--shadow-md);
+        width: 45%; /* Adjusted from 50% */
+        min-width: 550px; /* Added minimum width */
+        max-width: 700px; /* Increased from 600px */
+        position: relative;
+    }
+
+    @media screen and (max-width: 1200px) {
+        .form-container {
+            width: 50%;
+            min-width: 500px;
+        }
+    }
+
+    @media screen and (max-width: 992px) {
+        .form-container {
+            width: 100%;
+            min-width: auto;
+            max-width: 100%;
+            margin-bottom: 0;
+            padding: 2rem;
+        }
+    }
+    
+    @media screen and (max-width: 576px) {
+        .form-container {
+            padding: 1.5rem;
+        }
+    }
+
+    /* Map container */
+    .map-container {
+    flex: 1;
+    height: 700px; 
+    position: relative;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+    z-index: 1; /* Add this line to ensure proper layering */
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+    position: relative; /* Ensure this is set */
+    z-index: 2; /* Add this to ensure map is above loading overlay */
+}
+
+.mapboxgl-canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important; /* Add !important to override inline styles */
+    height: 100% !important; /* Add !important to override inline styles */
+}
+        .form-title {
+            font-size: 1.75rem;
+            margin-bottom: 1.75rem;
+            color: var(--text-color);
+            font-weight: 700;
+        }
+
+        .form-group {
+            margin-bottom: 1.75rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            transition: var(--transition);
+            color: var(--text-color);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+        
+        .form-control::placeholder {
+            color: #b0b0b0;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border: none;
+            padding: 0.85rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4);
+        }
+        
+        .btn:disabled {
+            background-color: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark);
+        }
+
+        .map-container {
+            flex: 1;
+            height: 600px;
+            position: relative;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+
+        @media screen and (max-width: 992px) {
+            .map-container {
+                height: 400px;
+                width: 100%;
+            }
+        }
+        
+        @media screen and (max-width: 576px) {
+            .map-container {
+                height: 300px;
+            }
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .location-actions {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+        
+        @media screen and (max-width: 576px) {
+            .location-actions {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+        }
+
+        .location-btn {
+            flex: 1;
+            background-color: var(--white);
+            border: 1px solid #ddd;
+            padding: 0.85rem 0.5rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            transition: var(--transition);
+            font-size: 0.95rem;
+        }
+
+        .location-btn:hover {
+            background-color: #f9f9f9;
+            border-color: var(--primary-color);
+        }
+        
+        .location-btn:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+
+        .location-btn-active {
+            background-color: var(--primary-color);
+            color: var(--white);
+            border-color: var(--primary-color);
+        }
+
+        .location-btn-active:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+
+        .footer {
+            background-color: var(--white);
+            padding: 1.5rem 2rem;
+            margin-top: 2rem;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .location-info {
+            background-color: var(--bg-color);
+            padding: 1.25rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1.5rem;
+            border: 1px solid #ddd;
+        }
+
+        .location-info p {
+            margin: 0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .location-info .location-address {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+        }
+
+        .location-info .location-coordinates {
+            color: var(--text-light);
+            font-family: monospace;
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            border-radius: var(--radius-lg);
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary-color);
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 1rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Alert styles */
+        .alert {
+            padding: 1.25rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1.75rem;
+            display: none;
+            font-size: 0.95rem;
+        }
+
+        .alert-success {
+            background-color: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--secondary-dark);
+        }
+
+        .alert-error {
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: var(--danger-color);
+        }
+        
+        /* Mapbox geocoder overrides */
+        .mapboxgl-ctrl-geocoder {
+            width: 100%;
+            max-width: 100%;
+            box-shadow: none;
+            font-family: inherit;
+            margin-top: 0.5rem;
+            border-radius: var(--radius-md);
+            border: 1px solid #ddd;
+        }
+        
+        .mapboxgl-ctrl-geocoder--input {
+            height: 48px;
+            padding: 0.85rem 1rem 0.85rem 2.5rem;
+            font-size: 1rem;
+            border-radius: var(--radius-md);
+            font-family: inherit;
+        }
+        
+        .mapboxgl-ctrl-geocoder--icon {
+            top: 12px;
+            left: 10px;
+        }
+        
+        .mapboxgl-ctrl-geocoder--icon-close {
+            right: 10px;
+            top: 12px;
+        }
+        
+        .mapboxgl-ctrl-geocoder--button {
+            width: 30px;
+            height: 30px;
+        }
+        
+        .mapboxgl-ctrl-geocoder--suggestion-title {
+            font-weight: 600;
+        }
+        
+        /* Emergency Box */
+        .emergency-box {
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-left: 4px solid var(--danger-color);
+            padding: 1.25rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1.75rem;
+        }
+        
+        .emergency-box h3 {
+            color: var(--danger-color);
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .emergency-box p {
+            margin: 0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        .condition-group {
+            margin-bottom: 1.75rem;
+        }
+        
+        .condition-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem 1.5rem;
+            margin-top: 0.75rem;
+            padding: 0.5rem;
+        }
+        
+        @media screen and (max-width: 576px) {
+            .condition-options {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .condition-option {
+            display: flex;
+            align-items: center;
+        }
+        
+        .condition-option input[type="radio"] {
+            margin-right: 0.75rem;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-color);
+        }
+        .condition-option label {
+            display: inline-block;
+            margin-bottom: 0;
+        }
+        
+        /* Custom map marker styles */
+        .mapboxgl-marker {
+            cursor: grabbing;
+        }
+        
+        /* Form divider */
+        .form-divider {
+            height: 1px;
+            background-color: #eee;
+            margin: 2rem 0;
+        }
+        
+        /* Input group for adjacent inputs */
+        .input-group {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .input-group .form-group {
+            flex: 1;
+        }
+        
+        @media screen and (max-width: 576px) {
+            .input-group {
+                flex-direction: column;
+                gap: 1.75rem;
+            }
+        }
+        
+        /* Map navigation instructions */
+        .map-instructions {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            max-width: 250px;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        /* Submit button container with padding */
+        .submit-container {
+            margin-top: 2rem;
+        }
+        
+        /* Required field indicator */
+        .required-field::after {
+            content: "*";
+            color: var(--danger-color);
+            margin-left: 4px;
+        }
+        
+        /* Form legend */
+        .form-legend {
+            color: var(--text-light);
+            font-size: 0.85rem;
+            margin-top: -0.75rem;
+            margin-bottom: 1.75rem;
+        }
+        
+        .form-legend span {
+            color: var(--danger-color);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <i class="fas fa-ambulance"></i>
+            <h1>FastTrack</h1>
+        </div>
+        <div class="user-info">
+            <span>donlj</span>
+            <img src="https://ui-avatars.com/api/?name=donlj&background=random" alt="User Avatar">
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="form-container">
+            <h2 class="form-title">Patient Information</h2>
+            <p class="form-legend">Fields marked with <span>*</span> are required</p>
+            <div id="alertBox" class="alert"></div>
+            
+            <div class="emergency-box">
+                <h3><i class="fas fa-exclamation-triangle"></i> Emergency Hotline</h3>
+                <p>For immediate assistance, please call our emergency hotline: <strong>108</strong></p>
+            </div>
+            
+            <form id="patientForm">
+                <div class="input-group">
+                    <div class="form-group">
+                        <label for="patientName" class="required-field">Full Name</label>
+                        <input type="text" id="patientName" class="form-control" placeholder="Enter patient's full name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="patientAge" class="required-field">Age</label>
+                        <input type="number" id="patientAge" class="form-control" min="0" max="120" placeholder="Age" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="patientContact" class="required-field">Contact Number</label>
+                    <input type="tel" id="patientContact" class="form-control" placeholder="+91 XXXXX XXXXX" required>
+                </div>
+                
+                <div class="condition-group">
+                    <label class="required-field">Emergency Condition</label>
+                    <div class="condition-options">
+                        <div class="condition-option">
+                            <input type="radio" id="condition-cardiac" name="condition" value="Cardiac Emergency">
+                            <label for="condition-cardiac">Cardiac Emergency</label>
+                        </div>
+                        <div class="condition-option">
+                            <input type="radio" id="condition-trauma" name="condition" value="Trauma/Accident">
+                            <label for="condition-trauma">Trauma/Accident</label>
+                        </div>
+                        <div class="condition-option">
+                            <input type="radio" id="condition-respiratory" name="condition" value="Respiratory Distress">
+                            <label for="condition-respiratory">Respiratory Distress</label>
+                        </div>
+                        <div class="condition-option">
+                            <input type="radio" id="condition-other" name="condition" value="Other">
+                            <label for="condition-other">Other</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-divider"></div>
+                
+                <div class="form-group">
+                    <label class="required-field">Patient Location</label>
+                    <div class="location-actions">
+                        <button type="button" id="useCurrentLocation" class="location-btn">
+                            <i class="fas fa-map-marker-alt"></i> Use My Location
+                        </button>
+                        <button type="button" id="enterManualLocation" class="location-btn">
+                            <i class="fas fa-keyboard"></i> Enter Address
+                        </button>
+                    </div>
+                    
+                    <div id="locationInfo" class="location-info" style="display: none;">
+                        <p class="location-address" id="locationAddress">Finding your location...</p>
+                        <p class="location-coordinates" id="locationCoordinates"></p>
+                    </div>
+                    
+                    <div id="manualLocationInput" style="display: none;">
+                        <div id="geocoder" class="geocoder"></div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="emergencyDetails">Additional Details</label>
+                    <textarea id="emergencyDetails" class="form-control" rows="4" placeholder="Please provide additional details about the emergency situation..."></textarea>
+                </div>
+                
+                <div class="submit-container">
+                    <button type="submit" id="submitBtn" class="btn" disabled>
+                        <i class="fas fa-paper-plane"></i> Submit Request
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="map-container">
+            <div id="map"></div>
+            <div class="map-instructions">
+                Click on the map to set a location or use the address search
+            </div>
+            <div id="mapLoading" class="loading-overlay">
+                <div class="spinner"></div>
+                <p>Loading map...</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>&copy; 2025 FastTrack Ambulance Management System. All rights reserved.</p>
+        <p>In case of emergency, always call 108 first.</p>
+        <p id="footer-date">Last updated: 2025-03-18 18:30:05</p>
+    </div>
+
+    <script>
+        // Mapbox API configuration
+        mapboxgl.accessToken = 'pk.eyJ1IjoidG9tMjYxMSIsImEiOiJjbTdxOXpqcjEwbXp3MmlxeWx5c2c0Ymt1In0.IDbRSRluguViXa6h1_18qA';
+        
+        // Global variables
+        let map;
+        let marker;
+        let geocoder;
+        let currentLocation = null;
+        let currentAddress = '';
+        let isCurrentLocationActive = false;
+        let isManualLocationActive = false;
+        
+        // Bangalore center coordinates
+        const BANGALORE_CENTER = [77.5946, 12.9716];
+        
+        // Elements
+        const patientForm = document.getElementById('patientForm');
+        const useCurrentLocationBtn = document.getElementById('useCurrentLocation');
+        const enterManualLocationBtn = document.getElementById('enterManualLocation');
+        const locationInfoDiv = document.getElementById('locationInfo');
+        const manualLocationInputDiv = document.getElementById('manualLocationInput');
+        const locationAddressElem = document.getElementById('locationAddress');
+        const locationCoordinatesElem = document.getElementById('locationCoordinates');
+        const submitBtn = document.getElementById('submitBtn');
+        const mapLoadingOverlay = document.getElementById('mapLoading');
+        const alertBox = document.getElementById('alertBox');
+        
+        // Initialize the page
+        window.addEventListener('load', function() {
+            initMap();
+            setupEventListeners();
+            updateFooterDate();
+        });
+        
+        // Initialize the map
+        function initMap() {
+            // Create map centered on Bangalore
+            map = new mapboxgl.Map({
+                container: 'map',
+                style: 'mapbox://styles/mapbox/streets-v12',
+                zoom: 11,
+                center: BANGALORE_CENTER
+            });
+            
+            // Add navigation controls
+            map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+            
+            // Initialize geocoder (address search)
+            geocoder = new MapboxGeocoder({
+                accessToken: mapboxgl.accessToken,
+                mapboxgl: mapboxgl,
+                marker: false,
+                placeholder: 'Search for an address in Bangalore',
+                countries: 'in',
+                // Limit results to Bangalore area (approximate bbox)
+                bbox: [77.4701, 12.8309, 77.7526, 13.1389],
+                proximity: {
+                    longitude: BANGALORE_CENTER[0],
+                    latitude: BANGALORE_CENTER[1]
+                }
+            });
+            
+            // Add geocoder to the map
+            document.getElementById('geocoder').appendChild(geocoder.onAdd(map));
+            
+            // When map is loaded
+            map.on('load', function() {
+                // Hide loading overlay
+                mapLoadingOverlay.style.display = 'none';
+                
+                // Add some Bangalore landmarks to help with context
+                addBangaloreLandmarks();
+                
+                // Create a default marker but don't add to map yet
+                marker = new mapboxgl.Marker({
+                    color: '#ef4444',
+                    draggable: true
+                });
+                
+                // When marker is dragged, update the location info
+                marker.on('dragend', function() {
+                    const lngLat = marker.getLngLat();
+                    currentLocation = {
+                        lng: lngLat.lng,
+                        lat: lngLat.lat
+                    };
+                    getReverseGeocode(lngLat.lat, lngLat.lng);
+                });
+            });
+            
+            // Listen for geocoder result
+            geocoder.on('result', function(e) {
+                // Set the marker position
+                const coordinates = e.result.center;
+                setMarker(coordinates[1], coordinates[0]);
+                
+                // Update location information
+                currentAddress = e.result.place_name;
+                currentLocation = {
+                    lat: coordinates[1],
+                    lng: coordinates[0]
+                };
+                
+                // Display location info
+                locationAddressElem.textContent = currentAddress;
+                locationCoordinatesElem.textContent = `${coordinates[1].toFixed(6)}, ${coordinates[0].toFixed(6)}`;
+                locationInfoDiv.style.display = 'block';
+                
+                // Enable submit button
+                submitBtn.disabled = false;
+            });
+            
+            // Add click event to map for selecting location
+            map.on('click', function(e) {
+                if (isManualLocationActive) {
+                    setMarker(e.lngLat.lat, e.lngLat.lng);
+                    currentLocation = {
+                        lat: e.lngLat.lat,
+                        lng: e.lngLat.lng
+                    };
+                    getReverseGeocode(e.lngLat.lat, e.lngLat.lng);
+                }
+            });
+        }
+        
+        // Add Bangalore landmarks for context
+        function addBangaloreLandmarks() {
+            const landmarks = [
+                {
+                    name: 'Vidhana Soudha',
+                    coordinates: [77.5913, 12.9796],
+                    type: 'government'
+                },
+                {
+                    name: 'Cubbon Park',
+                    coordinates: [77.5953, 12.9763],
+                    type: 'park'
+                },
+                {
+                    name: 'Lalbagh Botanical Garden',
+                    coordinates: [77.5845, 12.9507],
+                    type: 'park'
+                },
+                {
+                    name: 'Bengaluru Palace',
+                    coordinates: [77.5920, 12.9988],
+                    type: 'landmark'
+                },
+                {
+                    name: 'Bangalore International Exhibition Centre',
+                    coordinates: [77.4543, 13.0279],
+                    type: 'landmark'
+                },
+                {
+                    name: 'Kempegowda International Airport',
+                    coordinates: [77.7090, 13.1989],
+                    type: 'airport'
+                },
+                {
+                    name: 'Majestic Bus Station',
+                    coordinates: [77.5713, 12.9766],
+                    type: 'transport'
+                }
+            ];
+            
+            // Add landmark markers to map
+            landmarks.forEach(landmark => {
+                // Create a DOM element for the landmark marker
+                const el = document.createElement('div');
+                let iconUrl = 'https://cdn-icons-png.flaticon.com/512/684/684908.png';
+                
+                // Choose icon based on landmark type
+                switch(landmark.type) {
+                    case 'park':
+                        iconUrl = 'https://cdn-icons-png.flaticon.com/512/3479/3479669.png';
+                        break;
+                    case 'airport':
+                        iconUrl = 'https://cdn-icons-png.flaticon.com/512/723/723955.png';
+                        break;
+                    case 'hospital':
+                        iconUrl = 'https://cdn-icons-png.flaticon.com/512/3448/3448513.png';
+                        break;
+                    case 'transport':
+                        iconUrl = 'https://cdn-icons-png.flaticon.com/512/4715/4715112.png';
+                        break;
+                    case 'government':
+                        iconUrl = 'https://cdn-icons-png.flaticon.com/512/1465/1465395.png';
+                        break;
+                }
+                
+                el.style.backgroundImage = `url(${iconUrl})`;
+                el.style.backgroundSize = '100%';
+                el.style.width = '24px';
+                el.style.height = '24px';
+                
+                // Add marker
+                new mapboxgl.Marker({
+                    element: el,
+                    scale: 0.7,
+                    anchor: 'bottom'
+                })
+                    .setLngLat(landmark.coordinates)
+                    .setPopup(
+                        new mapboxgl.Popup({ offset: 25 }).setText(landmark.name)
+                    )
+                    .addTo(map);
+            });
+            
+            // Add some hospital markers
+            const hospitals = [
+            { name: 'Fortis Hospital', coordinates: [77.5982, 12.8891] },
+                { name: 'Narayana Health City', coordinates: [77.6826, 12.8235] },
+                { name: 'Columbia Asia Hospital', coordinates: [77.5927, 13.0358] }
+            ];
+            
+            hospitals.forEach(hospital => {
+                const el = document.createElement('div');
+                el.style.backgroundImage = 'url(https://cdn-icons-png.flaticon.com/512/3448/3448513.png)';
+                el.style.backgroundSize = '100%';
+                el.style.width = '28px';
+                el.style.height = '28px';
+                
+                new mapboxgl.Marker({
+                    element: el,
+                    scale: 0.7,
+                    anchor: 'bottom'
+                })
+                    .setLngLat(hospital.coordinates)
+                    .setPopup(
+                        new mapboxgl.Popup({ offset: 25 }).setText(hospital.name)
+                    )
+                    .addTo(map);
+            });
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Use current location button
+            useCurrentLocationBtn.addEventListener('click', function() {
+                if (!isCurrentLocationActive) {
+                    // Activate current location button
+                    activateLocationButton(useCurrentLocationBtn);
+                    enterManualLocationBtn.classList.remove('location-btn-active');
+                    isCurrentLocationActive = true;
+                    isManualLocationActive = false;
+                    
+                    // Show location info, hide manual input
+                    locationInfoDiv.style.display = 'block';
+                    manualLocationInputDiv.style.display = 'none';
+                    
+                    // Get current location
+                    getCurrentLocation();
+                }
+            });
+            
+            // Enter manual location button
+            enterManualLocationBtn.addEventListener('click', function() {
+                if (!isManualLocationActive) {
+                    // Activate manual location button
+                    activateLocationButton(enterManualLocationBtn);
+                    useCurrentLocationBtn.classList.remove('location-btn-active');
+                    isManualLocationActive = true;
+                    isCurrentLocationActive = false;
+                    
+                    // Show manual input, hide location info if no location selected yet
+                    if (!currentLocation) {
+                        locationInfoDiv.style.display = 'none';
+                    }
+                    manualLocationInputDiv.style.display = 'block';
+                }
+            });
+            
+            // Form submission
+            patientForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                // Check for required fields
+                if (!validateForm()) {
+                    return;
+                }
+                
+                // Show loading state
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<div class="spinner" style="width: 20px; height: 20px; margin: 0;"></div> Sending...';
+                
+                // Gather form data
+                const patientData = {
+                    name: document.getElementById('patientName').value,
+                    age: document.getElementById('patientAge').value,
+                    contact: document.getElementById('patientContact').value,
+                    condition: getSelectedCondition(),
+                    location: {
+                        address: currentAddress,
+                        coordinates: {
+                            lat: currentLocation.lat,
+                            lng: currentLocation.lng
+                        }
+                    },
+                    emergencyDetails: document.getElementById('emergencyDetails').value,
+                    timestamp: getCurrentTime()
+                };
+                
+                // Send data to server
+                submitPatientData(patientData);
+            });
+        }
+        
+        // Form validation
+        function validateForm() {
+            // Check for location
+            if (!currentLocation) {
+                showAlert('Please select a location before submitting.', 'error');
+                return false;
+            }
+            
+            // Check for selected condition
+            if (!getSelectedCondition()) {
+                showAlert('Please select an emergency condition.', 'error');
+                return false;
+            }
+            
+            // Check name field
+            const nameField = document.getElementById('patientName');
+            if (!nameField.value.trim()) {
+                showAlert('Please enter the patient\'s name.', 'error');
+                nameField.focus();
+                return false;
+            }
+            
+            // Check age field
+            const ageField = document.getElementById('patientAge');
+            if (!ageField.value || isNaN(ageField.value) || ageField.value < 0 || ageField.value > 120) {
+                showAlert('Please enter a valid age (0-120).', 'error');
+                ageField.focus();
+                return false;
+            }
+            
+            // Check contact field
+            const contactField = document.getElementById('patientContact');
+            if (!contactField.value.trim()) {
+                showAlert('Please enter a contact number.', 'error');
+                contactField.focus();
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Get selected condition from radio buttons
+        function getSelectedCondition() {
+            const conditionRadios = document.getElementsByName('condition');
+            for (const radio of conditionRadios) {
+                if (radio.checked) {
+                    return radio.value;
+                }
+            }
+            return '';
+        }
+        
+        // Activate location button style
+        function activateLocationButton(button) {
+            button.classList.add('location-btn-active');
+        }
+        
+        // Get current location using browser's geolocation API
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                locationAddressElem.textContent = 'Finding your location...';
+                locationCoordinatesElem.textContent = '';
+                
+                navigator.geolocation.getCurrentPosition(
+                    // Success callback
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        
+                        // Check if location is near Bangalore
+                        const distanceToBangalore = calculateDistance(
+                            lat, lng,
+                            BANGALORE_CENTER[1], BANGALORE_CENTER[0]
+                        );
+                        
+                        // If location is too far from Bangalore, center on Bangalore but show an alert
+                        if (distanceToBangalore > 50) { // 50 km from center
+                            showAlert('Your current location appears to be outside Bangalore. Using default Bangalore location.', 'error');
+                            setMarker(BANGALORE_CENTER[1], BANGALORE_CENTER[0]);
+                            currentLocation = {
+                                lat: BANGALORE_CENTER[1],
+                                lng: BANGALORE_CENTER[0]
+                            };
+                            getReverseGeocode(BANGALORE_CENTER[1], BANGALORE_CENTER[0]);
+                        } else {
+                            // Set the marker on the map
+                            setMarker(lat, lng);
+                            
+                            // Store current location
+                            currentLocation = {
+                                lat: lat,
+                                lng: lng
+                            };
+                            
+                            // Get address from coordinates
+                            getReverseGeocode(lat, lng);
+                        }
+                        
+                        // Enable submit button
+                        submitBtn.disabled = false;
+                    },
+                    // Error callback
+                    function(error) {
+                        console.error('Error getting location:', error);
+                        
+                        // Default to Bangalore center
+                        showAlert('Unable to get your current location. Using default Bangalore location.', 'error');
+                        setMarker(BANGALORE_CENTER[1], BANGALORE_CENTER[0]);
+                        currentLocation = {
+                            lat: BANGALORE_CENTER[1],
+                            lng: BANGALORE_CENTER[0]
+                        };
+                        getReverseGeocode(BANGALORE_CENTER[1], BANGALORE_CENTER[0]);
+                        
+                        // Enable submit button
+                        submitBtn.disabled = false;
+                    },
+                    // Options
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    }
+                );
+            } else {
+                locationAddressElem.textContent = 'Geolocation is not supported by this browser.';
+                showAlert('Your browser does not support geolocation. Please enter your address manually.', 'error');
+                
+                // Switch to manual input
+                enterManualLocationBtn.click();
+            }
+        }
+        
+        // Calculate distance between two points using Haversine formula
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radius of the earth in km
+            const dLat = deg2rad(lat2 - lat1);
+            const dLon = deg2rad(lon2 - lon1);
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2); 
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+            const distance = R * c; // Distance in km
+            return distance;
+        }
+        
+        function deg2rad(deg) {
+            return deg * (Math.PI/180);
+        }
+        
+        // Get address from coordinates using Mapbox Geocoding API
+        function getReverseGeocode(lat, lng) {
+            const reverseGeocodeUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}&types=address&limit=1`;
+            
+            fetch(reverseGeocodeUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.features && data.features.length > 0) {
+                        // Get the address
+                        const address = data.features[0].place_name;
+                        currentAddress = address;
+                        
+                        // Update UI
+                        locationAddressElem.textContent = address;
+                        locationCoordinatesElem.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                    } else {
+                        locationAddressElem.textContent = 'Address not found';
+                        locationCoordinatesElem.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                    }
+                    
+                    // Show location info
+                    locationInfoDiv.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error getting address:', error);
+                    locationAddressElem.textContent = 'Error getting address';
+                    locationCoordinatesElem.textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                    
+                    // Show location info anyway
+                    locationInfoDiv.style.display = 'block';
+                });
+        }
+        
+        // Set marker on the map
+        function setMarker(lat, lng) {
+            // Remove existing marker if exists
+            marker.remove();
+            
+            // Add marker to the map
+            marker.setLngLat([lng, lat]).addTo(map);
+            
+            // Center map on marker
+            map.flyTo({
+                center: [lng, lat],
+                zoom: 15,
+                essential: true
+            });
+        }
+        
+        // Submit patient data to server
+        function submitPatientData(patientData) {
+            // Since this is a frontend demo, we'll simulate sending data to server
+            setTimeout(() => {
+                console.log('Patient data submitted:', patientData);
+                
+                // Create notification object for admin dashboard
+                const notification = {
+                    _id: generateRandomId(),
+                    type: 'emergency',
+                    patientName: patientData.name,
+                    patientAge: patientData.age,
+                    patientLocation: patientData.location.address,
+                    condition: patientData.condition,
+                    message: `New patient submitted: ${patientData.name}, Age: ${patientData.age}, Condition: ${patientData.condition}`,
+                    coordinates: patientData.location.coordinates,
+                    status: 'pending',
+                    timestamp: patientData.timestamp
+                };
+                
+                // Store notification in localStorage (simulating server storage)
+                storeNotification(notification);
+                
+                // Reset form and UI
+                resetForm();
+                
+                // Show success message
+                showAlert('Your emergency request has been submitted successfully. An ambulance will be dispatched shortly.', 'success');
+                
+                // In a real application, redirect to a tracking page
+                setTimeout(() => {
+                    window.location.href = `tracking.html?id=${notification._id}`;
+                }, 3000);
+                
+            }, 1500); // Simulate network delay
+        }
+        
+        // Store notification in localStorage (simulating server storage)
+        function storeNotification(notification) {
+            // Get existing notifications
+            let notifications = JSON.parse(localStorage.getItem('notifications')) || [];
+            
+            // Add new notification to the beginning
+            notifications.unshift(notification);
+            
+            // Store updated notifications
+            localStorage.setItem('notifications', JSON.stringify(notifications));
+        }
+        
+        // Generate random ID for notifications
+        function generateRandomId() {
+            return Date.now().toString(36) + Math.random().toString(36).substring(2);
+        }
+        
+        // Reset form and UI after submission
+        function resetForm() {
+            // Reset form fields
+            patientForm.reset();
+            
+            // Reset location
+            currentLocation = null;
+            currentAddress = '';
+            
+            // Reset UI
+            locationInfoDiv.style.display = 'none';
+            manualLocationInputDiv.style.display = 'none';
+            useCurrentLocationBtn.classList.remove('location-btn-active');
+            enterManualLocationBtn.classList.remove('location-btn-active');
+            isCurrentLocationActive = false;
+            isManualLocationActive = false;
+            
+            // Reset marker and map
+            marker.remove();
+            map.flyTo({
+                center: BANGALORE_CENTER,
+                zoom: 11,
+                essential: true
+            });
+            
+            // Reset submit button
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Request';
+        }
+        
+        // Show alert message
+        function showAlert(message, type) {
+            alertBox.textContent = message;
+            alertBox.className = `alert alert-${type}`;
+            alertBox.style.display = 'block';
+            
+            // Hide alert after a delay
+            setTimeout(() => {
+                alertBox.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Get current time function
+        function getCurrentTime() {
+            return "2025-03-18 18:33:18"; // Using the provided current time
+        }
+        
+        // Update footer date with current date/time
+        function updateFooterDate() {
+            document.getElementById('footer-date').textContent = `Last updated: 2025-03-18 18:33:18`;
+        }
+    </script>
+</body>
+</html>
